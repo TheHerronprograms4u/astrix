@@ -5,7 +5,7 @@
 
 import { supabase } from './supabase.js';
 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`;
 
 // ── PSS-10 Questions ─────────────────────────────────────────
 const ASSESSMENT_QUESTIONS = [
@@ -666,6 +666,11 @@ function initChatbot() {
     messages.scrollTop = messages.scrollHeight;
     updateEmotionBadge(text);
     const reply = await getAIResponse();
+    if (reply === null) {
+      chatHistory.pop(); // remove unanswered user message to preserve alternating roles
+      typing.classList.add('hidden');
+      return; // startRateLimitCountdown handles re-enabling inputs
+    }
     chatHistory.push({ role:"model", parts:[{ text: reply }] });
     typing.classList.add('hidden');
     appendChatMessage(messages, reply, 'ai', typing);
@@ -758,9 +763,35 @@ async function getAIResponse() {
   });
   if (!data) return "<p>Something went wrong connecting to the AI. Please try again. 💙</p>";
   if (data._rateLimited) {
-    return `<p>⚡ I'm receiving a lot of messages right now. Please wait about <strong>60 seconds</strong> and try again — I'll be right here! 💙</p>`;
+    // Start a 60-second visible countdown in the chat
+    startRateLimitCountdown();
+    return null; // signal to caller: don't append a message, countdown handles it
   }
   return data.candidates?.[0]?.content?.parts?.[0]?.text || "<p>I'm here for you. Could you tell me more?</p>";
+}
+
+function startRateLimitCountdown() {
+  const messages  = document.getElementById('chat-messages');
+  const typing    = document.getElementById('typing-indicator');
+  const div       = document.createElement('div');
+  div.className   = 'message ai-message';
+  let secs        = 60;
+  const render    = () => `<div class="ai-avatar-small"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="margin:9px"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg></div><div class="message-content"><p>⚡ AI is temporarily rate-limited. Ready again in <strong>${secs}s</strong>…</p></div>`;
+  div.innerHTML   = render();
+  messages.insertBefore(div, typing);
+  messages.scrollTop = messages.scrollHeight;
+  const timer = setInterval(() => {
+    secs--;
+    if (secs <= 0) {
+      clearInterval(timer);
+      div.querySelector('.message-content').innerHTML = '<p>✅ AI is ready! Send your message.</p>';
+      _isSending = false;
+      document.getElementById('chat-send-btn').disabled = false;
+    } else {
+      div.querySelector('.message-content').innerHTML = `<p>⚡ AI is temporarily rate-limited. Ready again in <strong>${secs}s</strong>…</p>`;
+    }
+    messages.scrollTop = messages.scrollHeight;
+  }, 1000);
 }
 
 const FALLBACK_RECS = [
