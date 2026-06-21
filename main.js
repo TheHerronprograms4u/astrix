@@ -393,6 +393,8 @@ async function finishAssessment() {
   showLoadingOverlay(true);
   await renderDashboard();
   showLoadingOverlay(false);
+  // Small gap so the recommendations call above doesn't rate-limit the chat-welcome call
+  await new Promise(r => setTimeout(r, 2000));
   updateChatWelcome(currentProfile?.name?.split(' ')[0] || 'there', cl.level, pssScore);
 }
 
@@ -737,30 +739,57 @@ function updateEmotionBadge(text) {
   else                                                            { badge.textContent = 'Emotion: Neutral';     badge.style.color = 'var(--text-secondary)'; }
 }
 
-async function getAIResponse() {
-  try {
-    const res  = await fetch(GEMINI_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ systemInstruction:{ parts:[{ text:"You are ASTRIX AI — an empathetic, premium AI companion for Senior High School students. Use simple HTML tags (p, strong, ul, li). No markdown asterisks. Be warm, non-judgmental, and actionable in 2-4 sentences unless detailed help is needed." }]}, contents: chatHistory }) });
-    const data = await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || "<p>I'm here for you. Could you tell me more?</p>";
-  } catch {
-    return "<p>I'm having a connectivity issue right now. Please try again in a moment. 💙</p>";
+// ── Gemini fetch with retry on 429 ───────────────────────────
+async function geminiRequest(body, retries = 3) {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (res.status === 429) {
+      // Rate limited — wait then retry (1s, 3s, 7s)
+      if (attempt < retries - 1) {
+        await new Promise(r => setTimeout(r, (2 ** attempt) * 1000));
+        continue;
+      }
+      return null; // give up after all retries
+    }
+    if (!res.ok) return null;
+    return await res.json();
   }
+  return null;
+}
+
+async function getAIResponse() {
+  const data = await geminiRequest({
+    systemInstruction: { parts: [{ text: "You are ASTRIX AI — an empathetic, premium AI companion for Senior High School students. Use simple HTML tags (p, strong, ul, li). No markdown asterisks. Be warm, non-judgmental, and actionable in 2-4 sentences unless detailed help is needed." }] },
+    contents: chatHistory,
+  });
+  if (!data) return "<p>I'm a little busy right now — please try again in a moment. 💙</p>";
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || "<p>I'm here for you. Could you tell me more?</p>";
 }
 
 async function getAIRecommendations(score, level) {
   const name  = currentProfile?.name  || 'Student';
   const grade = currentProfile?.grade || 'SHS';
   const prompt = `You are ASTRIX AI. Student ${name} (${grade}) scored ${score}/40 on the PSS — "${level}" stress. Generate exactly 3 concise, personalized wellness recommendations as a JSON array: [{"title":"...","description":"...","type":"breathing|exercise|study|sleep|social"}]. Return ONLY the JSON array.`;
+  const data = await geminiRequest({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
+  if (!data) {
+    return [
+      { title: "5-Min Box Breathing",  description: "A quick breathing reset to lower cortisol and calm your mind.",                   type: "breathing" },
+      { title: "Break Down Your Tasks", description: "List all pending tasks and tackle the smallest one first to build momentum.",    type: "study" },
+      { title: "Short Walk Outside",    description: "A 10-minute walk can significantly reset your stress levels and boost clarity.", type: "exercise" },
+    ];
+  }
   try {
-    const res  = await fetch(GEMINI_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ contents:[{ role:"user", parts:[{ text: prompt }] }] }) });
-    const data = await res.json();
-    const raw  = data.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
-    return JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+    return JSON.parse(raw.replace(/```json|```/g, '').trim());
   } catch {
     return [
-      { title:"5-Min Box Breathing",  description:"A quick breathing reset to lower cortisol and calm your mind.",                    type:"breathing" },
-      { title:"Break Down Your Tasks", description:"List all pending tasks and tackle the smallest one first to build momentum.",     type:"study" },
-      { title:"Short Walk Outside",    description:"A 10-minute walk can significantly reset your stress levels and boost clarity.", type:"exercise" },
+      { title: "5-Min Box Breathing",  description: "A quick breathing reset to lower cortisol and calm your mind.",                   type: "breathing" },
+      { title: "Break Down Your Tasks", description: "List all pending tasks and tackle the smallest one first to build momentum.",    type: "study" },
+      { title: "Short Walk Outside",    description: "A 10-minute walk can significantly reset your stress levels and boost clarity.", type: "exercise" },
     ];
   }
 }
