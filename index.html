@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ASTRIX AI - Understand Your Stress. Empower Your Mind.</title>
+    <meta name="description" content="AI-powered stress detection, personalized mental wellness support, and real-time emotional guidance for Senior High School students." />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <!-- Canvas for Neural Network Particles -->
+    <canvas id="neural-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="navbar glass-panel">
+      <div class="logo">
+        <div class="logo-icon"></div>
+        <h1>ASTRIX<span class="ai-text">AI</span></h1>
+      </div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#dashboard">Dashboard</a>
+        <a href="#how-it-works">How It Works</a>
+      </div>
+      <button class="btn btn-outline">Sign In</button>
+    </nav>
+
+    <main>
+      <!-- Hero Section -->
+      <section class="hero" id="home">
+        <div class="hero-content">
+          <div class="badge fade-in-up">✨ Award-Winning High School Wellness Platform</div>
+          <h1 class="headline fade-in-up delay-1">
+            Understand Your Stress.<br>
+            <span class="gradient-text">Empower Your Mind.</span>
+          </h1>
+          <p class="subheadline fade-in-up delay-2">
+            AI-powered stress detection, personalized mental wellness support, and real-time emotional guidance designed specifically for Senior High School students.
+          </p>
+          <div class="hero-buttons fade-in-up delay-3">
+            <button class="btn btn-primary glow-effect">Get Started</button>
+            <button class="btn btn-glass">Take Stress Assessment</button>
+          </div>
+        </div>
+        
+        <div class="hero-visual fade-in delay-4">
+          <!-- Holographic Brain / Sphere Representation -->
+          <div class="holo-container">
+            <div class="holo-core"></div>
+            <div class="holo-ring ring-1"></div>
+            <div class="holo-ring ring-2"></div>
+            <div class="holo-ring ring-3"></div>
+            
+            <!-- Floating Indicators -->
+            <div class="floating-badge badge-top-right pulse">
+              <span class="dot success"></span> Stress Level: Low
+            </div>
+            <div class="floating-badge badge-bottom-left pulse delay-1">
+              <span class="dot accent"></span> Focus: 92%
+            </div>
+            <div class="floating-badge badge-top-left pulse delay-2">
+              <span class="dot violet"></span> Mood: Calm
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features Section -->
+      <section class="features" id="features">
+        <div class="section-header reveal">
+          <h2 class="gradient-text">Intelligent Healthcare</h2>
+          <p>Cutting-edge features tailored for student wellness</p>
+        </div>
+        
+        <div class="features-grid">
+          <!-- Feature 1 -->
+          <div class="feature-card glass-panel reveal">
+            <div class="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+            </div>
+            <h3>AI Stress Detection</h3>
+            <p>Analyzes stress through self-reports, behavioral patterns, typing speed, and emotional keywords.</p>
+          </div>
+          <!-- Feature 2 -->
+          <div class="feature-card glass-panel reveal delay-1">
+            <div class="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <h3>Real-Time Monitoring</h3>
+            <p>Tracks emotional well-being and provides instant stress-level assessment.</p>
+          </div>
+          <!-- Feature 3 -->
+          <div class="feature-card glass-panel reveal delay-2">
+            <div class="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+            <h3>Personalized Recommendations</h3>
+            <p>Generates customized coping strategies, breathing exercises, and relaxation activities.</p>
+          </div>
+          <!-- Feature 4 -->
+          <div class="feature-card glass-panel reveal delay-3">
+            <div class="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"/></svg>
+            </div>
+            <h3>AI Chat Companion</h3>
+            <p>Provides supportive conversations and intelligent stress-management guidance.</p>
+          </div>
+          <!-- Feature 5 -->
+          <div class="feature-card glass-panel reveal delay-4">
+            <div class="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+            </div>
+            <h3>Student Wellness Dashboard</h3>
+            <p>Visualizes stress trends, emotional health scores, and wellness progress.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI Chatbot Section -->
+      <section class="chatbot-section" id="chatbot">
+        <div class="chatbot-container glass-panel reveal">
+          <div class="chatbot-header">
+            <div class="chatbot-info">
+              <div class="ai-avatar">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="margin: 8px;"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6v6l4 2"/></svg>
+              </div>
+              <div>
+                <h4>ASTRIX Assistant</h4>
+                <span class="status-online"><span class="dot success"></span> Online</span>
+              </div>
+            </div>
+            <div class="chatbot-actions">
+              <span class="badge violet-badge">Emotion: Overwhelmed</span>
+              <span class="badge warning-badge">Stress: 78/100</span>
+            </div>
+          </div>
+          <div class="chatbot-messages" id="chat-messages">
+            <div class="message user-message fade-in-up">
+              <p>I feel overwhelmed with school requirements.</p>
+            </div>
+            <div class="message ai-message fade-in-up delay-1">
+              <div class="ai-avatar-small"></div>
+              <div class="message-content">
+                <p>I understand. Let's take this step by step. Would you like a breathing exercise, stress assessment, or a productivity plan to help manage your workload?</p>
+                <div class="message-suggestions">
+                  <button class="btn-suggestion">Breathing Exercise</button>
+                  <button class="btn-suggestion">Stress Assessment</button>
+                  <button class="btn-suggestion">Productivity Plan</button>
+                </div>
+              </div>
+            </div>
+            <div class="typing-indicator" id="typing-indicator" style="display:none;">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+          <div class="chatbot-input">
+            <input type="text" placeholder="Type your message..." />
+            <button class="btn-send"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13"/></svg></button>
+          </div>
+        </div>
+        <div class="chatbot-info-text reveal delay-1">
+          <h2 class="gradient-text">Empathetic AI Companion</h2>
+          <p>Always available to listen, guide, and support. ASTRIX uses advanced NLP to understand not just what you say, but how you feel through text patterns and emotional keywords.</p>
+          <br>
+          <p>Designed to serve as a supportive first line of response for Senior High School students dealing with academic pressure and personal challenges.</p>
+        </div>
+      </section>
+
+      <!-- Dashboard Preview Section -->
+      <section class="dashboard-preview" id="dashboard">
+        <div class="section-header reveal">
+          <h2 class="gradient-text">Your Wellness Hub</h2>
+          <p>A beautiful, intuitive dashboard designed to give you clear insights.</p>
+        </div>
+        
+        <div class="dashboard-grid reveal">
+          <div class="widget glass-panel col-span-2">
+            <div class="widget-header">
+              <h3>Weekly Wellness Trend</h3>
+              <select class="glass-select"><option>This Week</option></select>
+            </div>
+            <div class="chart-container">
+              <!-- Animated SVG Chart -->
+              <svg viewBox="0 0 400 150" class="line-chart">
+                <path d="M 0 100 C 50 100, 100 50, 150 70 C 200 90, 250 30, 300 40 C 350 50, 400 20, 400 20" fill="none" stroke="url(#lineGradient)" stroke-width="4" stroke-linecap="round" class="path-animate" />
+                <path d="M 0 100 C 50 100, 100 50, 150 70 C 200 90, 250 30, 300 40 C 350 50, 400 20, 400 20 L 400 150 L 0 150 Z" fill="url(#areaGradient)" opacity="0.3" class="fade-in-up delay-2"/>
+                <defs>
+                  <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stop-color="#00D4FF" />
+                    <stop offset="100%" stop-color="#7C3AED" />
+                  </linearGradient>
+                  <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#00D4FF" stop-opacity="0.5" />
+                    <stop offset="100%" stop-color="#00D4FF" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+          </div>
+          
+          <div class="widget glass-panel">
+            <h3>Current Stress Score</h3>
+            <div class="score-circle">
+              <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8" />
+                <circle cx="50" cy="50" r="45" fill="none" stroke="#64FFDA" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="198" class="circle-animate" stroke-linecap="round" />
+              </svg>
+              <div class="score-value">
+                <span class="number">30</span>
+                <span class="label">Optimal</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="widget glass-panel col-span-3 recommendations-widget">
+            <h3>AI Recommendations</h3>
+            <ul class="recommendation-list">
+              <li>
+                <div class="icon-small success-bg"></div>
+                <div class="rec-content">
+                  <h4>5-Min Box Breathing</h4>
+                  <p>Recommended to lower heart rate and reduce immediate stress.</p>
+                </div>
+                <button class="btn-outline btn-small">Start</button>
+              </li>
+              <li>
+                <div class="icon-small accent-bg"></div>
+                <div class="rec-content">
+                  <h4>Academic Break</h4>
+                  <p>You've been studying for 2 hours straight. Time to stretch.</p>
+                </div>
+                <button class="btn-outline btn-small">View</button>
+              </li>
+              <li>
+                <div class="icon-small violet-bg"></div>
+                <div class="rec-content">
+                  <h4>Hydration Check</h4>
+                  <p>Your typing patterns indicate fatigue. Drink a glass of water.</p>
+                </div>
+                <button class="btn-outline btn-small">Done</button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- How It Works Section -->
+      <section class="how-it-works" id="how-it-works">
+        <div class="section-header reveal">
+          <h2 class="gradient-text">How ASTRIX Works</h2>
+          <p>Seamlessly integrated into your daily academic routine</p>
+        </div>
+        
+        <div class="steps-container reveal">
+          <div class="step">
+            <div class="step-number">1</div>
+            <h3>Assessment</h3>
+            <p>Quick, non-intrusive daily check-ins to gauge your baseline mood.</p>
+          </div>
+          <div class="step-line"></div>
+          <div class="step">
+            <div class="step-number">2</div>
+            <h3>AI Analysis</h3>
+            <p>Secure engine processes text and behavioral patterns instantly.</p>
+          </div>
+          <div class="step-line"></div>
+          <div class="step">
+            <div class="step-number">3</div>
+            <h3>Classification</h3>
+            <p>Stress levels are accurately categorized for proper intervention.</p>
+          </div>
+          <div class="step-line"></div>
+          <div class="step">
+            <div class="step-number">4</div>
+            <h3>Intervention</h3>
+            <p>Receive tailored exercises and actionable coping strategies.</p>
+          </div>
+          <div class="step-line"></div>
+          <div class="step">
+            <div class="step-number">5</div>
+            <h3>Monitoring</h3>
+            <p>Track your progress and build long-term resilience over time.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="glass-panel">
+      <div class="footer-content">
+        <div class="brand">
+          <h2>ASTRIX<span class="ai-text">AI</span></h2>
+          <p>Empowering high school minds for a brighter, stress-free future through cutting-edge artificial intelligence.</p>
+        </div>
+        <div class="footer-links">
+          <div>
+            <h4>Platform</h4>
+            <a href="#features">Features</a>
+            <a href="#dashboard">Dashboard</a>
+            <a href="#">Security</a>
+          </div>
+          <div>
+            <h4>Resources</h4>
+            <a href="#">Mental Health Blog</a>
+            <a href="#">Research Papers</a>
+            <a href="#">Help Center</a>
+          </div>
+          <div>
+            <h4>Legal</h4>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+          </div>
+        </div>
+      </div>
+      <div class="copyright">
+        &copy; 2026 ASTRIX AI. All rights reserved.
+      </div>
+    </footer>
+
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
