@@ -739,26 +739,16 @@ function updateEmotionBadge(text) {
   else                                                            { badge.textContent = 'Emotion: Neutral';     badge.style.color = 'var(--text-secondary)'; }
 }
 
-// ── Gemini fetch with retry on 429 ───────────────────────────
-async function geminiRequest(body, retries = 3) {
-  for (let attempt = 0; attempt < retries; attempt++) {
-    const res = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    if (res.status === 429) {
-      // Rate limited — wait then retry (1s, 3s, 7s)
-      if (attempt < retries - 1) {
-        await new Promise(r => setTimeout(r, (2 ** attempt) * 1000));
-        continue;
-      }
-      return null; // give up after all retries
-    }
-    if (!res.ok) return null;
-    return await res.json();
-  }
-  return null;
+// ── Gemini fetch (single attempt — retrying mid-window just burns quota) ──
+async function geminiRequest(body) {
+  const res = await fetch(GEMINI_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (res.status === 429) return { _rateLimited: true };
+  if (!res.ok) return null;
+  return await res.json();
 }
 
 async function getAIResponse() {
@@ -766,31 +756,30 @@ async function getAIResponse() {
     systemInstruction: { parts: [{ text: "You are ASTRIX AI — an empathetic, premium AI companion for Senior High School students. Use simple HTML tags (p, strong, ul, li). No markdown asterisks. Be warm, non-judgmental, and actionable in 2-4 sentences unless detailed help is needed." }] },
     contents: chatHistory,
   });
-  if (!data) return "<p>I'm a little busy right now — please try again in a moment. 💙</p>";
+  if (!data) return "<p>Something went wrong connecting to the AI. Please try again. 💙</p>";
+  if (data._rateLimited) {
+    return `<p>⚡ I'm receiving a lot of messages right now. Please wait about <strong>60 seconds</strong> and try again — I'll be right here! 💙</p>`;
+  }
   return data.candidates?.[0]?.content?.parts?.[0]?.text || "<p>I'm here for you. Could you tell me more?</p>";
 }
+
+const FALLBACK_RECS = [
+  { title: "5-Min Box Breathing",   description: "A quick breathing reset to lower cortisol and calm your mind.",                   type: "breathing" },
+  { title: "Break Down Your Tasks", description: "List all pending tasks and tackle the smallest one first to build momentum.",    type: "study"    },
+  { title: "Short Walk Outside",    description: "A 10-minute walk can significantly reset your stress levels and boost clarity.", type: "exercise" },
+];
 
 async function getAIRecommendations(score, level) {
   const name  = currentProfile?.name  || 'Student';
   const grade = currentProfile?.grade || 'SHS';
   const prompt = `You are ASTRIX AI. Student ${name} (${grade}) scored ${score}/40 on the PSS — "${level}" stress. Generate exactly 3 concise, personalized wellness recommendations as a JSON array: [{"title":"...","description":"...","type":"breathing|exercise|study|sleep|social"}]. Return ONLY the JSON array.`;
   const data = await geminiRequest({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
-  if (!data) {
-    return [
-      { title: "5-Min Box Breathing",  description: "A quick breathing reset to lower cortisol and calm your mind.",                   type: "breathing" },
-      { title: "Break Down Your Tasks", description: "List all pending tasks and tackle the smallest one first to build momentum.",    type: "study" },
-      { title: "Short Walk Outside",    description: "A 10-minute walk can significantly reset your stress levels and boost clarity.", type: "exercise" },
-    ];
-  }
+  if (!data || data._rateLimited) return FALLBACK_RECS;
   try {
     const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
     return JSON.parse(raw.replace(/```json|```/g, '').trim());
   } catch {
-    return [
-      { title: "5-Min Box Breathing",  description: "A quick breathing reset to lower cortisol and calm your mind.",                   type: "breathing" },
-      { title: "Break Down Your Tasks", description: "List all pending tasks and tackle the smallest one first to build momentum.",    type: "study" },
-      { title: "Short Walk Outside",    description: "A 10-minute walk can significantly reset your stress levels and boost clarity.", type: "exercise" },
-    ];
+    return FALLBACK_RECS;
   }
 }
 
