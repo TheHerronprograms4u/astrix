@@ -40,6 +40,9 @@ let assessmentStep     = 0;
 let selectedMood       = null;
 let breathInterval     = null;
 let chatHistory        = [];
+let _chatbotInited     = false;  // guard: only attach chat listeners once
+let _dashNavInited     = false;  // guard: only attach nav tab listeners once
+let _dashBtnsInited    = false;  // guard: only attach dashboard button listeners once
 
 // ── Helpers ──────────────────────────────────────────────────
 const getGreeting = () => { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"; };
@@ -61,7 +64,7 @@ function showFormError(id, msg) { const el = document.getElementById(id); el.tex
 
 // ── Supabase DB helpers ──────────────────────────────────────
 async function fetchProfile(uid) {
-  const { data } = await supabase.from('profiles').select('*').eq('id', uid).single();
+  const { data } = await supabase.from('profiles').select('*').eq('id', uid).maybeSingle();
   return data;
 }
 
@@ -212,6 +215,8 @@ function initNavbar() {
 }
 
 function initDashboardNav() {
+  if (_dashNavInited) return;
+  _dashNavInited = true;
   document.querySelectorAll('.nav-tab').forEach(tab => {
     tab.addEventListener('click', (e) => { e.preventDefault(); switchView(tab.dataset.view); });
   });
@@ -579,6 +584,8 @@ function initCheckinModal() {
 }
 
 function initDashboardButtons() {
+  if (_dashBtnsInited) return;
+  _dashBtnsInited = true;
   ['dashboard-checkin-btn','widget-checkin-btn','daily-checkin-btn'].forEach(id => document.getElementById(id)?.addEventListener('click', () => openModal('checkin-overlay')));
   document.getElementById('progress-retake-btn')?.addEventListener('click', startAssessment);
 }
@@ -632,7 +639,12 @@ function startBreathingCycle() {
 }
 
 // ── CHATBOT ──────────────────────────────────────────────────
+let _isSending = false; // prevent double-sends
+
 function initChatbot() {
+  if (_chatbotInited) return; // only ever attach listeners once
+  _chatbotInited = true;
+
   const sendBtn  = document.getElementById('chat-send-btn');
   const input    = document.getElementById('chat-input');
   const messages = document.getElementById('chat-messages');
@@ -640,8 +652,11 @@ function initChatbot() {
   if (!sendBtn || !input || !messages) return;
 
   const sendMessage = async () => {
+    if (_isSending) return; // block while a reply is in-flight
     const text = input.value.trim();
     if (!text) return;
+    _isSending = true;
+    sendBtn.disabled = true;
     appendChatMessage(messages, text, 'user', typing);
     chatHistory.push({ role:"user", parts:[{ text }] });
     input.value = '';
@@ -652,6 +667,8 @@ function initChatbot() {
     chatHistory.push({ role:"model", parts:[{ text: reply }] });
     typing.classList.add('hidden');
     appendChatMessage(messages, reply, 'ai', typing);
+    sendBtn.disabled = false;
+    _isSending = false;
   };
 
   sendBtn.addEventListener('click', sendMessage);
