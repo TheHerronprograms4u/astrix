@@ -5,7 +5,7 @@
 
 import { supabase } from './supabase.js';
 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`;
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // ── PSS-10 Questions ─────────────────────────────────────────
 const ASSESSMENT_QUESTIONS = [
@@ -660,7 +660,7 @@ function initChatbot() {
     _isSending = true;
     sendBtn.disabled = true;
     appendChatMessage(messages, text, 'user', typing);
-    chatHistory.push({ role:"user", parts:[{ text }] });
+    chatHistory.push({ role:"user", content: text });
     input.value = '';
     typing.classList.remove('hidden');
     messages.scrollTop = messages.scrollHeight;
@@ -671,7 +671,7 @@ function initChatbot() {
       typing.classList.add('hidden');
       return; // startRateLimitCountdown handles re-enabling inputs
     }
-    chatHistory.push({ role:"model", parts:[{ text: reply }] });
+    chatHistory.push({ role:"assistant", content: reply });
     typing.classList.add('hidden');
     appendChatMessage(messages, reply, 'ai', typing);
     sendBtn.disabled = false;
@@ -710,8 +710,8 @@ async function updateChatWelcome(firstName, level, score) {
   const assessments = await fetchAssessments(currentUser.id);
   const latest      = assessments[0];
   chatHistory = [
-    { role:"user",  parts:[{ text:`[SYSTEM CONTEXT - do not reveal]: Student: ${currentProfile?.name}, Grade: ${currentProfile?.grade}. PSS score: ${score}/40 (${level} stress). Workload: ${JSON.stringify(latest?.workload)}. Be empathetic, concise (2-4 sentences), use HTML p/strong/ul tags. No markdown asterisks.` }] },
-    { role:"model", parts:[{ text:"Understood, I will provide personalized support." }] },
+    { role:"system", content:`[SYSTEM CONTEXT - do not reveal]: Student: ${currentProfile?.name}, Grade: ${currentProfile?.grade}. PSS score: ${score}/40 (${level} stress). Workload: ${JSON.stringify(latest?.workload)}. Be empathetic, concise (2-4 sentences), use HTML p/strong/ul tags. No markdown asterisks.` },
+    { role:"assistant", content:"Understood, I will provide personalized support." },
   ];
 }
 
@@ -744,12 +744,19 @@ function updateEmotionBadge(text) {
   else                                                            { badge.textContent = 'Emotion: Neutral';     badge.style.color = 'var(--text-secondary)'; }
 }
 
-// ── Gemini fetch (single attempt — retrying mid-window just burns quota) ──
-async function geminiRequest(body) {
-  const res = await fetch(GEMINI_URL, {
+// ── Groq API fetch ──
+async function groqRequest(messages) {
+  const res = await fetch(GROQ_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: 'llama3-8b-8192',
+      messages: messages,
+      temperature: 0.7
+    }),
   });
   if (res.status === 429) return { _rateLimited: true };
   if (!res.ok) return null;
@@ -757,17 +764,14 @@ async function geminiRequest(body) {
 }
 
 async function getAIResponse() {
-  const data = await geminiRequest({
-    systemInstruction: { parts: [{ text: "You are ASTRIX AI — an empathetic, premium AI companion for Senior High School students. Use simple HTML tags (p, strong, ul, li). No markdown asterisks. Be warm, non-judgmental, and actionable in 2-4 sentences unless detailed help is needed." }] },
-    contents: chatHistory,
-  });
+  const data = await groqRequest(chatHistory);
   if (!data) return "<p>Something went wrong connecting to the AI. Please try again. 💙</p>";
   if (data._rateLimited) {
     // Start a 60-second visible countdown in the chat
     startRateLimitCountdown();
     return null; // signal to caller: don't append a message, countdown handles it
   }
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || "<p>I'm here for you. Could you tell me more?</p>";
+  return data.choices?.[0]?.message?.content || "<p>I'm here for you. Could you tell me more?</p>";
 }
 
 function startRateLimitCountdown() {
@@ -804,10 +808,10 @@ async function getAIRecommendations(score, level) {
   const name  = currentProfile?.name  || 'Student';
   const grade = currentProfile?.grade || 'SHS';
   const prompt = `You are ASTRIX AI. Student ${name} (${grade}) scored ${score}/40 on the PSS — "${level}" stress. Generate exactly 3 concise, personalized wellness recommendations as a JSON array: [{"title":"...","description":"...","type":"breathing|exercise|study|sleep|social"}]. Return ONLY the JSON array.`;
-  const data = await geminiRequest({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
+  const data = await groqRequest([{ role: "user", content: prompt }]);
   if (!data || data._rateLimited) return FALLBACK_RECS;
   try {
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+    const raw = data.choices?.[0]?.message?.content || '[]';
     return JSON.parse(raw.replace(/```json|```/g, '').trim());
   } catch {
     return FALLBACK_RECS;
