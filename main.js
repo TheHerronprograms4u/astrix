@@ -134,10 +134,11 @@ function initChatbot() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          system_instruction: {
+          systemInstruction: {
             parts: [{ text: "You are ASTRIX AI, a premium, empathetic, and highly intelligent AI companion for senior high school students. Keep responses concise (2-3 sentences max), emotionally comforting, and highly actionable. Format your response cleanly using basic HTML tags like <p>, <strong>, or <ul> if needed, but avoid markdown asterisks." }]
           },
           contents: [{
+            role: "user",
             parts: [{text: userText}]
           }]
         })
