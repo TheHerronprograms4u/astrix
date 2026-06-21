@@ -5,7 +5,7 @@
 
 import { supabase } from './supabase.js';
 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`;
 
 // ── PSS-10 Questions ─────────────────────────────────────────
 const ASSESSMENT_QUESTIONS = [
@@ -273,13 +273,19 @@ function initAuthForms() {
     const { data, error: signUpError } = await supabase.auth.signUp({ email, password: pass });
     if (signUpError) { showFormError('reg-error', signUpError.message); btn.textContent = 'Create Account & Start Assessment'; btn.disabled = false; return; }
 
-    // 2. Insert profile row
-    await supabase.from('profiles').insert({ id: data.user.id, name, grade, age });
+    // 2. Set currentUser immediately so finishAssessment() has access before onAuthStateChange fires
+    currentUser = data.user;
+
+    // 3. Insert profile row
+    const { data: profileData } = await supabase.from('profiles').insert({ id: data.user.id, name, grade, age }).select().single();
+    currentProfile = profileData;
 
     btn.textContent = 'Create Account & Start Assessment'; btn.disabled = false;
     closeModal('auth-overlay');
-    // onAuthStateChange triggers showDashboard, then we start assessment
-    setTimeout(() => startAssessment(), 800);
+
+    // Show dashboard then start assessment (no race condition since currentUser is already set)
+    await showDashboard();
+    setTimeout(() => startAssessment(), 400);
   });
 }
 
@@ -356,6 +362,20 @@ function initAssessmentModal() {
 async function finishAssessment() {
   const btn = document.getElementById('assess-next');
   btn.textContent = '⏳ Analyzing with AI...'; btn.disabled = true;
+
+  // Safety: re-fetch session if currentUser was somehow lost
+  if (!currentUser) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      currentUser = session.user;
+      currentProfile = currentProfile || await fetchProfile(currentUser.id);
+    } else {
+      btn.textContent = '✨ Get My Results'; btn.disabled = false;
+      alert('Session expired. Please sign in again.');
+      closeModal('assessment-overlay');
+      return;
+    }
+  }
 
   const pssScore = assessmentAnswers.reduce((sum, ansIdx, qIdx) => sum + ASSESSMENT_QUESTIONS[qIdx].scores[ansIdx], 0);
   const cl       = classifyStress(pssScore);
