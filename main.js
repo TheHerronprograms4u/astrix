@@ -152,14 +152,14 @@ function showLoadingOverlay(show) {
 
 // ── PAGE TRANSITIONS ─────────────────────────────────────────
 function showLanding() {
-  showEl('landing-page'); hideEl('dashboard-page');
+  showEl('landing-page'); hideEl('dashboard-page'); hideEl('counselor-dashboard-page');
   showEl('landing-nav');  hideEl('dashboard-nav');
   showEl('nav-guest');    hideEl('nav-user');
 }
 
 async function showDashboard() {
-  hideEl('landing-page'); showEl('dashboard-page');
-  hideEl('landing-nav');  showEl('dashboard-nav');
+  hideEl('landing-page');
+  hideEl('landing-nav');
   hideEl('nav-guest');    showEl('nav-user');
 
   const name  = currentProfile?.name  || currentUser.email.split('@')[0];
@@ -168,23 +168,106 @@ async function showDashboard() {
   document.getElementById('nav-avatar').textContent    = name.charAt(0).toUpperCase();
   document.getElementById('dropdown-name').textContent  = name;
   document.getElementById('dropdown-grade').textContent = grade;
-  document.getElementById('welcome-greeting').textContent = `${getGreeting()}, ${name.split(' ')[0]}! 👋`;
 
-  switchView('dashboard');
-  initChatbot();
-  initDashboardNav();
-  initDashboardButtons();
+  if (grade === 'Guidance Counselor') {
+    hideEl('dashboard-page'); showEl('counselor-dashboard-page');
+    hideEl('dashboard-nav');
+    document.getElementById('counselor-greeting').textContent = `Counselor Dashboard - Welcome, ${name.split(' ')[0]}!`;
+    showLoadingOverlay(true);
+    await renderCounselorDashboard();
+    showLoadingOverlay(false);
+  } else {
+    showEl('dashboard-page'); hideEl('counselor-dashboard-page');
+    showEl('dashboard-nav');
+    document.getElementById('welcome-greeting').textContent = `${getGreeting()}, ${name.split(' ')[0]}! 👋`;
 
-  showLoadingOverlay(true);
-  await renderDashboard();
-  showLoadingOverlay(false);
+    switchView('dashboard');
+    initChatbot();
+    initDashboardNav();
+    initDashboardButtons();
 
-  // Daily check-in prompt — check if already done today
-  const checkins = await fetchCheckins(currentUser.id);
-  const today    = new Date().toDateString();
-  const doneTodayCheckin = checkins.some(c => new Date(c.created_at).toDateString() === today);
-  if (!doneTodayCheckin) {
-    setTimeout(() => openModal('checkin-overlay'), 1200);
+    showLoadingOverlay(true);
+    await renderDashboard();
+    showLoadingOverlay(false);
+
+    // Daily check-in prompt — check if already done today
+    const checkins = await fetchCheckins(currentUser.id);
+    const today    = new Date().toDateString();
+    const doneTodayCheckin = checkins.some(c => new Date(c.created_at).toDateString() === today);
+    if (!doneTodayCheckin) {
+      setTimeout(() => openModal('checkin-overlay'), 1200);
+    }
+  }
+}
+
+async function fetchAllProfiles() {
+  const { data } = await supabase.from('profiles').select('*').neq('grade', 'Guidance Counselor');
+  return data || [];
+}
+
+async function fetchAllAssessments() {
+  const { data } = await supabase.from('assessments').select('*').order('created_at', { ascending: false });
+  return data || [];
+}
+
+async function renderCounselorDashboard() {
+  const profiles = await fetchAllProfiles();
+  const assessments = await fetchAllAssessments();
+  
+  const latestAssessments = {};
+  assessments.forEach(a => {
+    if (!latestAssessments[a.user_id]) latestAssessments[a.user_id] = a;
+  });
+
+  const studentsWithAssessments = profiles.map(p => ({
+    profile: p,
+    latest: latestAssessments[p.id] || null
+  }));
+
+  const urgentList = document.getElementById('counselor-urgent-list');
+  const allTbody = document.getElementById('counselor-all-tbody');
+
+  const urgent = studentsWithAssessments.filter(s => s.latest && s.latest.level === 'Severe');
+  
+  if (urgent.length === 0) {
+    urgentList.innerHTML = '<p style="color:var(--text-secondary);">No students currently flagged with Severe stress.</p>';
+  } else {
+    urgentList.innerHTML = urgent.map(s => {
+      const d = new Date(s.latest.created_at).toLocaleDateString();
+      return `<div class="history-item" style="border-color:rgba(239,68,68,0.5);">
+        <div class="history-score-badge" style="background:rgba(239,68,68,0.1);color:#EF4444;">${s.latest.pss_score}</div>
+        <div class="history-info">
+          <h4 style="color:#FCA5A5;">${s.profile.name} <span style="font-size:0.8rem;color:var(--text-secondary);">(${s.profile.grade})</span></h4>
+          <p>Assessed as Severe on ${d}</p>
+        </div>
+        <button class="btn btn-outline btn-small" onclick="alert('Contacting student ${s.profile.name}...')">Contact</button>
+      </div>`;
+    }).join('');
+  }
+
+  if (studentsWithAssessments.length === 0) {
+    allTbody.innerHTML = '<tr><td colspan="6" style="color:var(--text-secondary);text-align:center;">No students found.</td></tr>';
+  } else {
+    allTbody.innerHTML = studentsWithAssessments.map(s => {
+      const p = s.profile;
+      const a = s.latest;
+      let scoreStr = '--', levelStr = 'None', dateStr = '--', color = 'var(--text-secondary)';
+      if (a) {
+        scoreStr = `${a.pss_score}/40`;
+        levelStr = a.level;
+        dateStr = new Date(a.created_at).toLocaleDateString();
+        const cl = classifyStress(a.pss_score);
+        color = cl.color;
+      }
+      return `<tr>
+        <td style="font-weight:600;color:var(--text-primary);">${p.name}</td>
+        <td>${p.grade}</td>
+        <td style="font-weight:600;">${scoreStr}</td>
+        <td><span class="badge" style="background:${color}22;color:${color};border-color:${color}44;">${levelStr}</span></td>
+        <td>${dateStr}</td>
+        <td><button class="btn btn-glass btn-small" onclick="alert('Viewing full report for ${p.name}')">View Report</button></td>
+      </tr>`;
+    }).join('');
   }
 }
 
@@ -263,26 +346,31 @@ function initAuthForms() {
   document.getElementById('register-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const name  = document.getElementById('reg-name').value.trim();
+    const nickname = document.getElementById('reg-nickname').value.trim() || name.split(' ')[0];
     const grade = document.getElementById('reg-grade').value;
     const age   = parseInt(document.getElementById('reg-age').value) || null;
     const email = document.getElementById('reg-email').value.trim().toLowerCase();
     const pass  = document.getElementById('reg-password').value;
     const btn   = e.target.querySelector('button[type=submit]');
 
-    if (!name || !grade || !email || !pass) { showFormError('reg-error', 'Please fill in all required fields.'); return; }
+    if (!name || !nickname || !grade || !email || !pass) { showFormError('reg-error', 'Please fill in all required fields.'); return; }
     if (pass.length < 6) { showFormError('reg-error', 'Password must be at least 6 characters.'); return; }
 
     btn.textContent = 'Creating account...'; btn.disabled = true;
 
     // 1. Create auth user
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password: pass });
+    const { data, error: signUpError } = await supabase.auth.signUp({ 
+      email, 
+      password: pass,
+      options: { data: { real_name: name } }
+    });
     if (signUpError) { showFormError('reg-error', signUpError.message); btn.textContent = 'Create Account & Start Assessment'; btn.disabled = false; return; }
 
     // 2. Set currentUser immediately so finishAssessment() has access before onAuthStateChange fires
     currentUser = data.user;
 
     // 3. Insert profile row
-    const { data: profileData } = await supabase.from('profiles').insert({ id: data.user.id, name, grade, age }).select().single();
+    const { data: profileData } = await supabase.from('profiles').insert({ id: data.user.id, name: nickname, grade, age }).select().single();
     currentProfile = profileData;
 
     btn.textContent = 'Create Account & Start Assessment'; btn.disabled = false;
@@ -387,6 +475,12 @@ async function finishAssessment() {
   const recs     = await getAIRecommendations(pssScore, cl.level);
 
   await insertAssessment(currentUser.id, { pssScore, level: cl.level, workload: workloadAnswers, recommendations: recs });
+
+  if (cl.level === 'Severe') {
+    setTimeout(() => {
+      alert("Notification: Your stress level is assessed as Severe. The Guidance Counselor has been automatically notified to provide you with additional support.");
+    }, 1000);
+  }
 
   btn.textContent = '✨ Get My Results'; btn.disabled = false;
   closeModal('assessment-overlay');
@@ -689,7 +783,7 @@ async function updateChatWelcome(firstName, level, score) {
     Low:      `Your stress score is <strong>${score}/40</strong> — you're in the <strong>low</strong> range. Keep it up! How can I support you today?`,
     Moderate: `Your stress score is <strong>${score}/40</strong> — <strong>moderate</strong> stress. That's manageable! What's on your mind?`,
     High:     `Your stress score is <strong>${score}/40</strong>, which is quite <strong>high</strong>. I'm here to help — what's weighing on you most?`,
-    Severe:   `Your stress score of <strong>${score}/40</strong> shows <strong>severe stress</strong>. You're not alone — I'm here for you. Let's talk.`,
+    Severe:   `Your stress score of <strong>${score}/40</strong> shows <strong>severe stress</strong>. A notification has been sent to your Guidance Counselor. You're not alone — I'm here for you. Let's talk.`,
   };
   el.innerHTML = `<p>Hi <strong>${firstName}</strong>! ${msgs[level] || "How can I support you today?"}</p>`;
 
@@ -717,6 +811,7 @@ async function updateChatWelcome(firstName, level, score) {
 
 function appendChatMessage(container, text, role, typing) {
   const div = document.createElement('div');
+  const formattedText = role === 'ai' ? marked.parse(text) : text;
   if (role === 'user') {
     div.className = 'message user-message';
     div.innerHTML = `<p>${text}</p>`;
@@ -725,7 +820,7 @@ function appendChatMessage(container, text, role, typing) {
     div.className = 'message ai-message';
     div.innerHTML = `
       <div class="ai-avatar-small"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="margin:9px"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg></div>
-      <div class="message-content">${text}${hasBreathing ? `<div class="message-suggestions"><button class="btn-suggestion breath-open">🌬️ Open Breathing Exercise</button></div>` : ''}</div>`;
+      <div class="message-content">${formattedText}${hasBreathing ? `<div class="message-suggestions"><button class="btn-suggestion breath-open">🌬️ Open Breathing Exercise</button></div>` : ''}</div>`;
     div.querySelector('.breath-open')?.addEventListener('click', () => openModal('breathing-overlay'));
   }
   container.insertBefore(div, typing);

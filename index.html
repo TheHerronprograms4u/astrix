@@ -7,6 +7,7 @@
     <meta name="description" content="AI-powered stress detection, personalized mental wellness support, and real-time emotional guidance for Senior High School students." />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   </head>
   <body>
     <canvas id="neural-canvas"></canvas>
@@ -42,7 +43,11 @@
           <form id="register-form" novalidate>
             <div class="form-group">
               <label>Full Name</label>
-              <input id="reg-name" type="text" placeholder="Your name" required />
+              <input id="reg-name" type="text" placeholder="Your real name" required />
+            </div>
+            <div class="form-group">
+              <label>Nickname / User ID</label>
+              <input id="reg-nickname" type="text" placeholder="Your display name" required />
             </div>
             <div class="form-row">
               <div class="form-group">
@@ -56,6 +61,7 @@
                   <option>Grade 11 - TVL</option>
                   <option>Grade 12 - STEM</option>
                   <option>Grade 12 - ABM</option>
+                  <option>Guidance Counselor</option>
                   <option>Grade 12 - HUMSS</option>
                   <option>Grade 12 - GAS</option>
                   <option>Grade 12 - TVL</option>
@@ -479,6 +485,50 @@
           </div>
         </div>
 
+      </main>
+    </div>
+
+    <!-- ============ COUNSELOR DASHBOARD PAGE ============ -->
+    <div id="counselor-dashboard-page" class="hidden">
+      <main style="padding-top:110px;">
+        <div class="welcome-banner glass-panel reveal" id="counselor-welcome-banner">
+          <div>
+            <h2 id="counselor-greeting">Counselor Dashboard</h2>
+            <p style="color:var(--text-secondary);margin-top:4px;">Monitor student stress levels and assessments.</p>
+          </div>
+        </div>
+
+        <div class="dashboard-grid" style="margin-top:32px;">
+          <!-- Critical Students -->
+          <div class="widget glass-panel col-span-3 reveal">
+            <h3>Urgent Attention (Severe Stress)</h3>
+            <div id="counselor-urgent-list" style="margin-top:16px;">
+              <p style="color:var(--text-secondary);">Loading...</p>
+            </div>
+          </div>
+
+          <!-- All Students -->
+          <div class="widget glass-panel col-span-3 reveal delay-1">
+            <h3>Student Overview</h3>
+            <div style="margin-top:16px; overflow-x:auto;">
+              <table class="counselor-table">
+                <thead>
+                  <tr>
+                    <th>Student Name (ID)</th>
+                    <th>Grade</th>
+                    <th>Latest Score</th>
+                    <th>Stress Level</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="counselor-all-tbody">
+                  <tr><td colspan="6" style="color:var(--text-secondary);text-align:center;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
 
