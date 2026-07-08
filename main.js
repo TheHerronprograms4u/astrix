@@ -378,7 +378,9 @@ function initAuthForms() {
 
     // Show dashboard then start assessment (no race condition since currentUser is already set)
     await showDashboard();
-    setTimeout(() => startAssessment(), 400);
+    if (grade !== 'Guidance Counselor') {
+      setTimeout(() => startAssessment(), 400);
+    }
   });
 }
 
