@@ -201,12 +201,14 @@ async function showDashboard() {
 }
 
 async function fetchAllProfiles() {
-  const { data } = await supabase.from('profiles').select('*').neq('grade', 'Guidance Counselor');
+  const { data, error } = await supabase.from('profiles').select('*').neq('grade', 'Guidance Counselor');
+  if (error) console.error('Error fetching profiles:', error);
   return data || [];
 }
 
 async function fetchAllAssessments() {
-  const { data } = await supabase.from('assessments').select('*').order('created_at', { ascending: false });
+  const { data, error } = await supabase.from('assessments').select('*').order('created_at', { ascending: false });
+  if (error) console.error('Error fetching assessments:', error);
   return data || [];
 }
 
@@ -237,10 +239,11 @@ async function renderCounselorDashboard() {
       return `<div class="history-item" style="border-color:rgba(239,68,68,0.5);">
         <div class="history-score-badge" style="background:rgba(239,68,68,0.1);color:#EF4444;">${s.latest.pss_score}</div>
         <div class="history-info">
-          <h4 style="color:#FCA5A5;">${s.profile.name} <span style="font-size:0.8rem;color:var(--text-secondary);">(${s.profile.grade})</span></h4>
+          <h4 style="color:#FCA5A5;">${s.profile.real_name || s.profile.name} <span style="font-size:0.8rem;color:var(--text-secondary);">(${s.profile.grade})</span></h4>
           <p>Assessed as Severe on ${d}</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">${s.profile.email || 'No email'}</p>
         </div>
-        <button class="btn btn-outline btn-small" onclick="alert('Contacting student ${s.profile.name}...')">Contact</button>
+        <button class="btn btn-outline btn-small" onclick="alert('Contacting student ${s.profile.real_name || s.profile.name}...')">Contact</button>
       </div>`;
     }).join('');
   }
@@ -260,12 +263,15 @@ async function renderCounselorDashboard() {
         color = cl.color;
       }
       return `<tr>
-        <td style="font-weight:600;color:var(--text-primary);">${p.name}</td>
+        <td>
+          <div style="font-weight:600;color:var(--text-primary);">${p.real_name || p.name}</div>
+          <div style="font-size:0.85rem;color:var(--text-secondary);">${p.email || 'No email'}</div>
+        </td>
         <td>${p.grade}</td>
         <td style="font-weight:600;">${scoreStr}</td>
         <td><span class="badge" style="background:${color}22;color:${color};border-color:${color}44;">${levelStr}</span></td>
         <td>${dateStr}</td>
-        <td><button class="btn btn-glass btn-small" onclick="alert('Viewing full report for ${p.name}')">View Report</button></td>
+        <td><button class="btn btn-glass btn-small" onclick="alert('Viewing full report for ${p.real_name || p.name}')">View Report</button></td>
       </tr>`;
     }).join('');
   }
@@ -370,7 +376,14 @@ function initAuthForms() {
     currentUser = data.user;
 
     // 3. Insert profile row
-    const { data: profileData } = await supabase.from('profiles').insert({ id: data.user.id, name: nickname, grade, age }).select().single();
+    const { data: profileData } = await supabase.from('profiles').insert({ 
+      id: data.user.id, 
+      name: nickname, 
+      real_name: name,
+      email: email,
+      grade, 
+      age 
+    }).select().single();
     currentProfile = profileData;
 
     btn.textContent = 'Create Account & Start Assessment'; btn.disabled = false;
