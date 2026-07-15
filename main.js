@@ -119,7 +119,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentUser    = session.user;
     currentProfile = await fetchProfile(currentUser.id);
     showLoadingOverlay(false);
-    await showDashboard();
+    if (currentProfile?.face_descriptor && sessionStorage.getItem('faceVerified') !== 'true') {
+      trigger2FAVerify();
+    } else {
+      await showDashboard();
+    }
   } else {
     showLoadingOverlay(false);
     showLanding();
@@ -128,11 +132,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Listen for auth state changes (tab focus, token refresh, etc.)
   supabase.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session) {
+      // Avoid re-triggering if already processing
+      if (currentUser?.id === session.user.id && currentProfile) return;
+      
       currentUser    = session.user;
       currentProfile = await fetchProfile(currentUser.id);
-      await showDashboard();
+      
+      if (currentProfile?.face_descriptor && sessionStorage.getItem('faceVerified') !== 'true') {
+        trigger2FAVerify();
+      } else {
+        await showDashboard();
+      }
     } else if (event === 'SIGNED_OUT') {
       currentUser = null; currentProfile = null; chatHistory = [];
+      sessionStorage.removeItem('faceVerified');
       showLanding();
     }
   });
@@ -294,6 +307,7 @@ function initNavbar() {
 
   document.getElementById('signout-btn').addEventListener('click', async (e) => {
     e.preventDefault();
+    sessionStorage.removeItem('faceVerified');
     await supabase.auth.signOut();
   });
 
@@ -349,12 +363,15 @@ function initAuthForms() {
     const btn   = e.target.querySelector('button[type=submit]');
     btn.textContent = 'Signing in...'; btn.disabled = true;
 
+    // Reset 2FA status on manual login
+    sessionStorage.removeItem('faceVerified');
+
     const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
     btn.textContent = 'Sign In'; btn.disabled = false;
 
     if (error) { showFormError('login-error', error.message); return; }
     closeModal('auth-overlay');
-    // onAuthStateChange will trigger showDashboard
+    // onAuthStateChange will trigger showDashboard or 2FA
   });
 
   // ── REGISTER ──
@@ -998,6 +1015,14 @@ function stopCamera() {
   }
 }
 
+function trigger2FAVerify() {
+  faceSetupMode = '2fa';
+  document.getElementById('face-scan-title').textContent = 'Two-Factor Authentication';
+  document.getElementById('face-scan-sub').textContent = 'Please verify your identity with Face ID';
+  openModal('face-scan-overlay');
+  startFaceScan();
+}
+
 function initFaceRecognition() {
   // Login with Face ID button
   document.getElementById('btn-face-login')?.addEventListener('click', () => {
@@ -1193,6 +1218,40 @@ async function handleFaceResult(descriptor) {
       actionBtn.textContent = 'Try Again';
       actionBtn.disabled = false;
       actionBtn.onclick = startFaceScan;
+    }
+  } else if (faceSetupMode === '2fa') {
+    statusEl.textContent = 'Verifying identity...';
+    
+    if (!currentProfile || !currentProfile.face_descriptor) {
+       statusEl.textContent = 'Error: Missing facial data for this account.';
+       return;
+    }
+    
+    try {
+      const storedDesc = new Float32Array(JSON.parse(currentProfile.face_descriptor));
+      const distance = faceapi.euclideanDistance(descriptor, storedDesc);
+      
+      if (distance < 0.55) {
+        statusEl.textContent = 'Identity Verified! Unlocking...';
+        statusEl.style.color = 'var(--success)';
+        sessionStorage.setItem('faceVerified', 'true');
+        actionBtn.textContent = 'Enter Dashboard';
+        actionBtn.disabled = false;
+        actionBtn.onclick = async () => {
+          stopCamera();
+          closeModal('face-scan-overlay');
+          await showDashboard();
+        };
+      } else {
+        statusEl.textContent = 'Verification Failed. Face does not match.';
+        statusEl.style.color = 'var(--warning)';
+        actionBtn.textContent = 'Try Again';
+        actionBtn.disabled = false;
+        actionBtn.onclick = startFaceScan;
+      }
+    } catch (e) {
+       statusEl.textContent = 'Error reading biometric data.';
+       console.error(e);
     }
   }
 }
