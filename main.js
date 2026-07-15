@@ -108,6 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initAssessmentModal();
   initBreathingModal();
   initCheckinModal();
+  initFaceRecognition();
 
   // Show a loading state
   showLoadingOverlay(true);
@@ -301,6 +302,14 @@ function initNavbar() {
     document.getElementById('user-dropdown').classList.add('hidden');
     startAssessment();
   });
+
+  document.getElementById('setup-face-id')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('user-dropdown').classList.add('hidden');
+    faceSetupMode = 'register';
+    faceSetupCallback = () => { alert("Face ID successfully registered!"); };
+    openModal('face-permission-overlay');
+  });
 }
 
 function initDashboardNav() {
@@ -389,11 +398,15 @@ function initAuthForms() {
     btn.textContent = 'Create Account & Start Assessment'; btn.disabled = false;
     closeModal('auth-overlay');
 
-    // Show dashboard then start assessment (no race condition since currentUser is already set)
-    await showDashboard();
-    if (grade !== 'Guidance Counselor') {
-      setTimeout(() => startAssessment(), 400);
-    }
+    // Prompt for Face ID Registration before continuing
+    faceSetupMode = 'register';
+    faceSetupCallback = async () => {
+      await showDashboard();
+      if (grade !== 'Guidance Counselor') {
+        setTimeout(() => startAssessment(), 400);
+      }
+    };
+    openModal('face-permission-overlay');
   });
 }
 
@@ -960,3 +973,227 @@ function initScrollReveal() {
   window.addEventListener('scroll', check);
   setTimeout(check, 100);
 }
+
+// ── FACE RECOGNITION ─────────────────────────────────────────
+let faceModelsLoaded = false;
+let faceSetupMode = 'register'; // 'register' or 'login'
+let faceSetupCallback = null;
+let activeVideoStream = null;
+
+async function loadFaceModels() {
+  if (faceModelsLoaded) return;
+  const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+  await Promise.all([
+    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+  ]);
+  faceModelsLoaded = true;
+}
+
+function stopCamera() {
+  if (activeVideoStream) {
+    activeVideoStream.getTracks().forEach(track => track.stop());
+    activeVideoStream = null;
+  }
+}
+
+function initFaceRecognition() {
+  // Login with Face ID button
+  document.getElementById('btn-face-login')?.addEventListener('click', () => {
+    const emails = Object.keys(localStorage).filter(k => k.startsWith('faceid_'));
+    if (emails.length === 0) {
+      showFormError('login-error', 'No Face ID registered on this device.');
+      return;
+    }
+    closeModal('auth-overlay');
+    faceSetupMode = 'login';
+    document.getElementById('face-scan-title').textContent = 'Face ID Login';
+    document.getElementById('face-scan-sub').textContent = 'Look at the camera to sign in';
+    openModal('face-scan-overlay');
+    startFaceScan();
+  });
+
+  // Permission Modal
+  document.getElementById('face-perm-skip').addEventListener('click', () => {
+    closeModal('face-permission-overlay');
+    if (faceSetupCallback) faceSetupCallback();
+  });
+  
+  document.getElementById('face-perm-agree').addEventListener('click', () => {
+    closeModal('face-permission-overlay');
+    document.getElementById('face-scan-title').textContent = 'Face ID Setup';
+    document.getElementById('face-scan-sub').textContent = 'Position your face in the center';
+    openModal('face-scan-overlay');
+    startFaceScan();
+  });
+
+  document.getElementById('close-face-scan').addEventListener('click', () => {
+    stopCamera();
+    closeModal('face-scan-overlay');
+    if (faceSetupMode === 'register' && faceSetupCallback) faceSetupCallback();
+  });
+}
+
+async function startFaceScan() {
+  const video = document.getElementById('face-video');
+  const loader = document.getElementById('face-scan-loader');
+  const scanLine = document.getElementById('scan-line');
+  const statusEl = document.getElementById('face-scan-status');
+  const actionBtn = document.getElementById('face-scan-action-btn');
+  const canvas = document.getElementById('face-canvas');
+  
+  loader.style.display = 'flex';
+  scanLine.style.display = 'none';
+  statusEl.textContent = 'Initializing camera...';
+  actionBtn.disabled = true;
+  actionBtn.textContent = 'Hold still...';
+  
+  try {
+    activeVideoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+    video.srcObject = activeVideoStream;
+  } catch (err) {
+    statusEl.textContent = 'Camera access denied or unavailable.';
+    loader.style.display = 'none';
+    return;
+  }
+
+  // Load models if not loaded
+  statusEl.textContent = 'Loading AI security models...';
+  await loadFaceModels();
+  
+  loader.style.display = 'none';
+  scanLine.style.display = 'block';
+  statusEl.textContent = 'Scanning face...';
+
+  // Make canvas match video
+  video.addEventListener('play', async () => {
+    const displaySize = { width: video.offsetWidth, height: video.offsetHeight };
+    faceapi.matchDimensions(canvas, displaySize);
+    
+    let attempts = 0;
+    const scanInterval = setInterval(async () => {
+      if (!activeVideoStream) {
+        clearInterval(scanInterval);
+        return;
+      }
+      
+      const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+      
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      if (detections) {
+        const resizedDetections = faceapi.resizeResults(detections, displaySize);
+        faceapi.draw.drawDetections(canvas, resizedDetections);
+        
+        statusEl.textContent = 'Face detected. Processing...';
+        actionBtn.textContent = 'Processing...';
+        
+        clearInterval(scanInterval);
+        setTimeout(() => handleFaceResult(detections.descriptor), 1000);
+      } else {
+        attempts++;
+        if (attempts > 30) {
+          statusEl.textContent = 'Could not detect face. Try adjusting lighting.';
+        }
+      }
+    }, 300);
+  }, { once: true });
+}
+
+async function handleFaceResult(descriptor) {
+  const statusEl = document.getElementById('face-scan-status');
+  const actionBtn = document.getElementById('face-scan-action-btn');
+  const scanLine = document.getElementById('scan-line');
+  
+  scanLine.style.display = 'none';
+  
+  if (faceSetupMode === 'register') {
+    if (currentUser) {
+      statusEl.textContent = 'Saving biometric data securely to database...';
+      const descriptorStr = JSON.stringify(Array.from(descriptor));
+      
+      // Update the user's profile with the face descriptor
+      const { error } = await supabase.from('profiles').update({ face_descriptor: descriptorStr }).eq('id', currentUser.id);
+      
+      if (error) {
+        statusEl.textContent = 'Error saving to database. Ensure "face_descriptor" column exists.';
+        statusEl.style.color = 'var(--warning)';
+        actionBtn.textContent = 'Try Again';
+        actionBtn.disabled = false;
+        actionBtn.onclick = startFaceScan;
+        return;
+      }
+
+      statusEl.textContent = 'Face successfully securely registered!';
+      statusEl.style.color = 'var(--success)';
+      actionBtn.textContent = 'Continue';
+      actionBtn.disabled = false;
+      actionBtn.onclick = () => {
+        stopCamera();
+        closeModal('face-scan-overlay');
+        if (faceSetupCallback) faceSetupCallback();
+      };
+    } else {
+      statusEl.textContent = 'Error: No active user session.';
+    }
+  } else if (faceSetupMode === 'login') {
+    statusEl.textContent = 'Authenticating securely...';
+    
+    // Fetch all profiles with registered face descriptors from Supabase
+    const { data: profiles, error } = await supabase.from('profiles').select('*').not('face_descriptor', 'is', null);
+    
+    if (error || !profiles || profiles.length === 0) {
+      statusEl.textContent = 'No facial data found in database. Please register first.';
+      statusEl.style.color = 'var(--warning)';
+      actionBtn.textContent = 'Close';
+      actionBtn.disabled = false;
+      actionBtn.onclick = () => {
+        stopCamera();
+        closeModal('face-scan-overlay');
+      };
+      return;
+    }
+
+    let matchedProfile = null;
+    let minDistance = 0.55; // face-api strict threshold
+    
+    for (const profile of profiles) {
+      try {
+        const storedDesc = new Float32Array(JSON.parse(profile.face_descriptor));
+        const distance = faceapi.euclideanDistance(descriptor, storedDesc);
+        if (distance < minDistance) {
+          minDistance = distance;
+          matchedProfile = profile;
+        }
+      } catch (e) {
+        console.error("Error parsing face descriptor for user", profile.email);
+      }
+    }
+    
+    if (matchedProfile) {
+      statusEl.textContent = 'Welcome back! Authenticated.';
+      statusEl.style.color = 'var(--success)';
+      actionBtn.textContent = 'Enter Dashboard';
+      actionBtn.disabled = false;
+      actionBtn.onclick = () => {
+        stopCamera();
+        closeModal('face-scan-overlay');
+        
+        // Face verified! Proceed to confirm session securely
+        showFormError('login-error', 'Face ID Verified! Please enter your password to confirm session (security policy).');
+        openModal('auth-overlay');
+        document.getElementById('login-email').value = matchedProfile.email;
+        document.getElementById('login-password').focus();
+      };
+    } else {
+      statusEl.textContent = 'Face not recognized. Access Denied.';
+      statusEl.style.color = 'var(--warning)';
+      actionBtn.textContent = 'Try Again';
+      actionBtn.disabled = false;
+      actionBtn.onclick = startFaceScan;
+    }
+  }
+}
+
