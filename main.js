@@ -999,7 +999,7 @@ let activeVideoStream = null;
 
 async function loadFaceModels() {
   if (faceModelsLoaded) return;
-  const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+  const MODEL_URL = 'https://vladmandic.github.io/face-api/model/';
   await Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
     faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
