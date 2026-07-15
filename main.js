@@ -1092,38 +1092,51 @@ async function startFaceScan() {
   statusEl.textContent = 'Scanning face...';
 
   // Make canvas match video
-  video.addEventListener('play', async () => {
-    const displaySize = { width: video.offsetWidth, height: video.offsetHeight };
+  video.addEventListener('play', () => {
+    // Ensure video has intrinsic dimensions
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      setTimeout(() => video.dispatchEvent(new Event('play')), 100);
+      return;
+    }
+    
+    const displaySize = { width: video.videoWidth, height: video.videoHeight };
     faceapi.matchDimensions(canvas, displaySize);
     
     let attempts = 0;
-    const scanInterval = setInterval(async () => {
-      if (!activeVideoStream) {
-        clearInterval(scanInterval);
-        return;
-      }
+    
+    async function detectLoop() {
+      if (!activeVideoStream) return;
       
-      const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
-      
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      if (detections) {
-        const resizedDetections = faceapi.resizeResults(detections, displaySize);
-        faceapi.draw.drawDetections(canvas, resizedDetections);
+      try {
+        const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
         
-        statusEl.textContent = 'Face detected. Processing...';
-        actionBtn.textContent = 'Processing...';
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        clearInterval(scanInterval);
-        setTimeout(() => handleFaceResult(detections.descriptor), 1000);
-      } else {
-        attempts++;
-        if (attempts > 30) {
-          statusEl.textContent = 'Could not detect face. Try adjusting lighting.';
+        if (detections) {
+          const resizedDetections = faceapi.resizeResults(detections, displaySize);
+          faceapi.draw.drawDetections(canvas, resizedDetections);
+          
+          statusEl.textContent = 'Face detected. Processing...';
+          actionBtn.textContent = 'Processing...';
+          
+          setTimeout(() => handleFaceResult(detections.descriptor), 1000);
+          return; // Stop loop
+        } else {
+          attempts++;
+          if (attempts > 100) {
+             statusEl.textContent = 'Could not detect face. Try adjusting lighting or move closer.';
+          }
         }
+      } catch (err) {
+        console.error("Face detection error:", err);
+        statusEl.textContent = 'Detection error. Please check console.';
       }
-    }, 300);
+      
+      setTimeout(detectLoop, 200);
+    }
+    
+    detectLoop();
   }, { once: true });
 }
 
