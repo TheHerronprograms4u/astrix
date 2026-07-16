@@ -43,6 +43,7 @@ let chatHistory        = [];
 let _chatbotInited     = false;  // guard: only attach chat listeners once
 let _dashNavInited     = false;  // guard: only attach nav tab listeners once
 let _dashBtnsInited    = false;  // guard: only attach dashboard button listeners once
+let _lastInputWasVoice = false;  // track if last input was via mic (for auto-TTS)
 
 // ── Helpers ──────────────────────────────────────────────────
 const getGreeting = () => { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"; };
@@ -791,12 +792,71 @@ function initChatbot() {
     chatHistory.push({ role:"assistant", content: reply });
     typing.classList.add('hidden');
     appendChatMessage(messages, reply, 'ai', typing);
+    // Auto-speak the AI reply if user used voice input
+    if (_lastInputWasVoice) {
+      const plainReply = stripHtml(reply);
+      speakText(plainReply, null);
+      _lastInputWasVoice = false;
+    }
     sendBtn.disabled = false;
     _isSending = false;
   };
 
   sendBtn.addEventListener('click', sendMessage);
   input.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
+
+  // ── Speech-to-Text (Mic Button) ──
+  const micBtn = document.getElementById('chat-mic-btn');
+  if (micBtn && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+    let isRecording = false;
+
+    micBtn.addEventListener('click', () => {
+      if (isRecording) {
+        recognition.stop();
+        return;
+      }
+      isRecording = true;
+      micBtn.classList.add('recording');
+      input.placeholder = '🎙️ Listening...';
+      recognition.start();
+    });
+
+    recognition.onresult = (event) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      input.value = transcript;
+    };
+
+    recognition.onend = () => {
+      isRecording = false;
+      micBtn.classList.remove('recording');
+      input.placeholder = 'Tell me how you\'re feeling...';
+      // Auto-send if there's text
+      if (input.value.trim()) {
+        _lastInputWasVoice = true;
+        sendMessage();
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.warn('Speech recognition error:', event.error);
+      isRecording = false;
+      micBtn.classList.remove('recording');
+      input.placeholder = 'Tell me how you\'re feeling...';
+    };
+  } else if (micBtn) {
+    // Browser doesn't support Speech Recognition
+    micBtn.title = 'Speech recognition not supported in this browser';
+    micBtn.style.opacity = '0.3';
+    micBtn.style.cursor = 'not-allowed';
+  }
 }
 
 async function updateChatWelcome(firstName, level, score) {
@@ -847,8 +907,14 @@ function appendChatMessage(container, text, role, typing) {
     div.className = 'message ai-message';
     div.innerHTML = `
       <div class="ai-avatar-small"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="margin:9px"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg></div>
-      <div class="message-content">${formattedText}${hasBreathing ? `<div class="message-suggestions"><button class="btn-suggestion breath-open">🌬️ Open Breathing Exercise</button></div>` : ''}</div>`;
+      <div class="message-content">${formattedText}${hasBreathing ? `<div class="message-suggestions"><button class="btn-suggestion breath-open">🌬️ Open Breathing Exercise</button></div>` : ''}<button class="btn-tts" title="Listen to this message"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></button></div>`;
     div.querySelector('.breath-open')?.addEventListener('click', () => openModal('breathing-overlay'));
+    // TTS: speak this message when speaker button clicked
+    div.querySelector('.btn-tts')?.addEventListener('click', (e) => {
+      const btn = e.currentTarget;
+      const plainText = stripHtml(text);
+      speakText(plainText, btn);
+    });
   }
   container.insertBefore(div, typing);
   container.scrollTop = container.scrollHeight;
@@ -973,3 +1039,57 @@ function initScrollReveal() {
   setTimeout(check, 100);
 }
 
+// ── TEXT-TO-SPEECH HELPERS ───────────────────────────────────
+function stripHtml(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+}
+
+let _currentUtterance = null;
+
+function speakText(text, btn) {
+  // If already speaking, stop it
+  if (speechSynthesis.speaking) {
+    speechSynthesis.cancel();
+    document.querySelectorAll('.btn-tts.speaking').forEach(b => b.classList.remove('speaking'));
+    // If clicking the same button that was speaking, just stop
+    if (_currentUtterance?._btn === btn) {
+      _currentUtterance = null;
+      return;
+    }
+  }
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance._btn = btn;
+  _currentUtterance = utterance;
+
+  // Pick a natural-sounding female voice if available
+  const voices = speechSynthesis.getVoices();
+  const preferred = voices.find(v => v.name.includes('Microsoft Zira') || v.name.includes('Google UK English Female') || v.name.includes('Samantha'))
+    || voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'))
+    || voices.find(v => v.lang.startsWith('en'))
+    || voices[0];
+  if (preferred) utterance.voice = preferred;
+
+  utterance.rate = 1.0;
+  utterance.pitch = 1.05;
+
+  if (btn) btn.classList.add('speaking');
+
+  utterance.onend = () => {
+    if (btn) btn.classList.remove('speaking');
+    _currentUtterance = null;
+  };
+  utterance.onerror = () => {
+    if (btn) btn.classList.remove('speaking');
+    _currentUtterance = null;
+  };
+
+  speechSynthesis.speak(utterance);
+}
+
+// Ensure voices are loaded (some browsers load them async)
+if (typeof speechSynthesis !== 'undefined') {
+  speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+}

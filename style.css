@@ -270,6 +270,18 @@ main { max-width:1280px; margin:0 auto; padding:130px 24px 60px; }
 .chatbot-input input:disabled { opacity:0.5; cursor:not-allowed; }
 .btn-send { background:linear-gradient(135deg, var(--accent-cyan), var(--accent-blue)); border:none; width:46px;height:46px; border-radius:50%; display:flex; justify-content:center; align-items:center; cursor:pointer; color:#0A192F; transition:transform 0.2s, box-shadow 0.2s; flex-shrink:0; }
 .btn-send:hover { transform:scale(1.07); box-shadow:0 4px 15px rgba(100,255,218,0.35); }
+
+/* Mic button */
+.btn-mic { background:rgba(100,255,218,0.1); border:1px solid rgba(100,255,218,0.25); width:46px;height:46px; border-radius:50%; display:flex; justify-content:center; align-items:center; cursor:pointer; color:var(--accent-cyan); transition:all 0.3s ease; flex-shrink:0; }
+.btn-mic:hover { background:rgba(100,255,218,0.2); transform:scale(1.07); box-shadow:0 4px 15px rgba(100,255,218,0.2); }
+.btn-mic.recording { background:rgba(239,68,68,0.25); border-color:rgba(239,68,68,0.6); color:#EF4444; animation:pulse-mic 1.2s ease-in-out infinite; box-shadow:0 0 20px rgba(239,68,68,0.3); }
+@keyframes pulse-mic { 0%,100%{ box-shadow:0 0 8px rgba(239,68,68,0.3); } 50%{ box-shadow:0 0 24px rgba(239,68,68,0.5); } }
+
+/* TTS speaker button on AI messages */
+.btn-tts { background:none; border:none; color:var(--text-secondary); cursor:pointer; padding:4px; margin-left:4px; border-radius:6px; transition:all 0.2s ease; display:inline-flex; align-items:center; vertical-align:middle; opacity:0.6; }
+.btn-tts:hover { color:var(--accent-cyan); opacity:1; background:rgba(100,255,218,0.1); }
+.btn-tts.speaking { color:var(--accent-cyan); opacity:1; animation:pulse-tts 1s ease-in-out infinite; }
+@keyframes pulse-tts { 0%,100%{ opacity:0.7; } 50%{ opacity:1; } }
 .typing-indicator { display:flex; gap:6px; padding:14px 18px; background:rgba(255,255,255,0.05); border-radius:18px 18px 18px 4px; width:fit-content; margin-left:46px; }
 .typing-indicator span { width:7px;height:7px; background:var(--text-secondary); border-radius:50%; animation:bounce 1.4s infinite ease-in-out both; }
 .typing-indicator span:nth-child(1) { animation-delay:-0.32s; }
