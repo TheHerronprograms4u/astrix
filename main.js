@@ -1039,7 +1039,7 @@ function initScrollReveal() {
   setTimeout(check, 100);
 }
 
-// ── TEXT-TO-SPEECH HELPERS (Groq PlayAI Neural TTS) ─────────
+// ── TEXT-TO-SPEECH HELPERS (Groq Orpheus Neural TTS) ─────────
 function stripHtml(html) {
   const tmp = document.createElement('div');
   tmp.innerHTML = html;
@@ -1076,6 +1076,9 @@ async function speakText(text, btn) {
   _ttsSpeakingBtn = btn;
 
   try {
+    // Prepend a vocal direction for warmth (Orpheus supports [gentle], [cheerful], [whisper], etc.)
+    const spokenText = `[gentle] ${cleanText}`;
+
     const res = await fetch('https://api.groq.com/openai/v1/audio/speech', {
       method: 'POST',
       headers: {
@@ -1083,9 +1086,9 @@ async function speakText(text, btn) {
         'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'playai-tts',
-        input: cleanText,
-        voice: 'Arista-PlayAI',
+        model: 'canopylabs/orpheus-v1-english',
+        input: spokenText,
+        voice: 'diana',
         response_format: 'wav'
       })
     });
