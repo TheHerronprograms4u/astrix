@@ -1094,7 +1094,8 @@ async function speakText(text, btn) {
     });
 
     if (!res.ok) {
-      console.warn('Groq TTS failed, falling back to browser TTS:', res.status);
+      const errorText = await res.text().catch(() => 'No error text body');
+      console.warn('Groq TTS failed, falling back to browser TTS:', res.status, errorText);
       fallbackBrowserTTS(cleanText, btn);
       return;
     }
