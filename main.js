@@ -1039,57 +1039,112 @@ function initScrollReveal() {
   setTimeout(check, 100);
 }
 
-// ── TEXT-TO-SPEECH HELPERS ───────────────────────────────────
+// ── TEXT-TO-SPEECH HELPERS (Groq PlayAI Neural TTS) ─────────
 function stripHtml(html) {
   const tmp = document.createElement('div');
   tmp.innerHTML = html;
   return tmp.textContent || tmp.innerText || '';
 }
 
-let _currentUtterance = null;
+let _ttsAudio = null;       // current Audio element
+let _ttsSpeakingBtn = null;  // which btn is currently "speaking"
 
-function speakText(text, btn) {
-  // If already speaking, stop it
-  if (speechSynthesis.speaking) {
-    speechSynthesis.cancel();
-    document.querySelectorAll('.btn-tts.speaking').forEach(b => b.classList.remove('speaking'));
-    // If clicking the same button that was speaking, just stop
-    if (_currentUtterance?._btn === btn) {
-      _currentUtterance = null;
+async function speakText(text, btn) {
+  // If already playing, stop it
+  if (_ttsAudio && !_ttsAudio.paused) {
+    _ttsAudio.pause();
+    _ttsAudio.currentTime = 0;
+    if (_ttsSpeakingBtn) _ttsSpeakingBtn.classList.remove('speaking');
+    // If clicking the same button that was speaking, just stop (toggle off)
+    if (_ttsSpeakingBtn === btn) {
+      _ttsAudio = null;
+      _ttsSpeakingBtn = null;
       return;
     }
   }
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance._btn = btn;
-  _currentUtterance = utterance;
+  // Clean up text for speech (remove emojis, excessive punctuation)
+  const cleanText = text
+    .replace(/[\u{1F600}-\u{1F9FF}]|[\u{2600}-\u{27BF}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1FA00}-\u{1FA6F}]/gu, '')
+    .replace(/\n{2,}/g, '. ')
+    .replace(/\n/g, ' ')
+    .trim();
 
-  // Pick a natural-sounding female voice if available
+  if (!cleanText) return;
+
+  if (btn) btn.classList.add('speaking');
+  _ttsSpeakingBtn = btn;
+
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/audio/speech', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'playai-tts',
+        input: cleanText,
+        voice: 'Arista-PlayAI',
+        response_format: 'wav'
+      })
+    });
+
+    if (!res.ok) {
+      console.warn('Groq TTS failed, falling back to browser TTS:', res.status);
+      fallbackBrowserTTS(cleanText, btn);
+      return;
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    _ttsAudio = audio;
+
+    audio.onended = () => {
+      if (btn) btn.classList.remove('speaking');
+      _ttsSpeakingBtn = null;
+      _ttsAudio = null;
+      URL.revokeObjectURL(url);
+    };
+
+    audio.onerror = () => {
+      if (btn) btn.classList.remove('speaking');
+      _ttsSpeakingBtn = null;
+      _ttsAudio = null;
+      URL.revokeObjectURL(url);
+    };
+
+    await audio.play();
+  } catch (err) {
+    console.warn('TTS error, falling back to browser TTS:', err);
+    fallbackBrowserTTS(cleanText, btn);
+  }
+}
+
+// Fallback to browser SpeechSynthesis if Groq TTS fails
+function fallbackBrowserTTS(text, btn) {
+  if (typeof speechSynthesis === 'undefined') {
+    if (btn) btn.classList.remove('speaking');
+    return;
+  }
+  speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
   const voices = speechSynthesis.getVoices();
   const preferred = voices.find(v => v.name.includes('Microsoft Zira') || v.name.includes('Google UK English Female') || v.name.includes('Samantha'))
     || voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'))
     || voices.find(v => v.lang.startsWith('en'))
     || voices[0];
   if (preferred) utterance.voice = preferred;
-
   utterance.rate = 1.0;
   utterance.pitch = 1.05;
-
   if (btn) btn.classList.add('speaking');
-
-  utterance.onend = () => {
-    if (btn) btn.classList.remove('speaking');
-    _currentUtterance = null;
-  };
-  utterance.onerror = () => {
-    if (btn) btn.classList.remove('speaking');
-    _currentUtterance = null;
-  };
-
+  utterance.onend = () => { if (btn) btn.classList.remove('speaking'); };
+  utterance.onerror = () => { if (btn) btn.classList.remove('speaking'); };
   speechSynthesis.speak(utterance);
 }
 
-// Ensure voices are loaded (some browsers load them async)
+// Ensure browser voices are loaded (for fallback)
 if (typeof speechSynthesis !== 'undefined') {
   speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
 }
