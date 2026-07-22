@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PSYCHE AI — Architecture & Workflow Diagram Generator</title>
+  <!-- Google Fonts & Mermaid JS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  
+  <style>
+    :root {
+      --bg-dark: #0A192F;
+      --bg-card: rgba(17, 34, 64, 0.75);
+      --accent-blue: #00D4FF;
+      --accent-cyan: #64FFDA;
+      --accent-violet: #7C3AED;
+      --text-main: #E6F1FF;
+      --text-sub: #8892B0;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(0, 212, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(124, 58, 237, 0.08) 0%, transparent 40%);
+    }
+
+    header {
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(10, 25, 47, 0.9);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+    }
+
+    .brand span { color: var(--accent-blue); }
+
+    .actions { display: flex; gap: 12px; }
+
+    .btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: rgba(0, 212, 255, 0.15);
+      border-color: var(--accent-blue);
+      color: white;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+      border: none;
+      color: white;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(0, 212, 255, 0.25);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 20px;
+      padding: 24px;
+      height: calc(100vh - 80px);
+    }
+
+    .editor-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(12px);
+    }
+
+    .panel-header {
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-header h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--accent-cyan);
+    }
+
+    textarea {
+      flex: 1;
+      width: 100%;
+      background: rgba(10, 25, 47, 0.8);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      color: #A5F3FC;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      outline: none;
+      resize: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      border-color: var(--accent-blue);
+    }
+
+    .diagram-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      overflow: auto;
+      backdrop-filter: blur(12px);
+      position: relative;
+    }
+
+    .diagram-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 500px;
+    }
+
+    .diagram-container svg {
+      max-width: 100% !important;
+      height: auto !important;
+    }
+
+    .error-toast {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid #EF4444;
+      color: #FCA5A5;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      margin-top: 12px;
+      display: none;
+    }
+
+    @media (max-width: 1024px) {
+      main { grid-template-columns: 1fr; height: auto; }
+      .editor-panel { height: 400px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6v6l4 2"/></svg>
+      </div>
+      <div>PSYCHE <span>AI Workflow Encoder</span></div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="reset-btn">Reset Default</button>
+      <button class="btn" id="copy-btn">Copy Code</button>
+      <button class="btn btn-primary" id="render-btn">Render Diagram</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left: Code Editor -->
+    <div class="editor-panel">
+      <div class="panel-header">
+        <h3>Mermaid Code Editor</h3>
+        <span style="font-size:0.75rem; color:var(--text-sub);">Real-time rendering</span>
+      </div>
+      <textarea id="mermaid-code" spellcheck="false"></textarea>
+      <div class="error-toast" id="error-toast"></div>
+    </div>
+
+    <!-- Right: Diagram Visualizer -->
+    <div class="diagram-panel">
+      <div class="panel-header">
+        <h3>Interactive Workflow Preview</h3>
+        <span style="font-size:0.78rem; color:var(--accent-cyan);" id="status-indicator">● Live Sync</span>
+      </div>
+      <div class="diagram-container">
+        <div id="diagram-target"></div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const DEFAULT_WORKFLOW = `flowchart TD
+    %% PSYCHE AI System Architecture & Workflow Diagram
+
+    subgraph USER_LAYER ["👤 User & Authentication Layer"]
+        A["Student Login / Auth"] --> B{"Assessment Choice"}
+        B -- Start New --> C["PSS-10 & Workload Questionnaire"]
+        B -- Open Chat --> D["Interactive AI Chat View"]
+    end
+
+    subgraph ASSESSMENT_ENGINE ["📊 Stress Score & Classifier"]
+        C --> E["Compute PSS Score (0–40)"]
+        E --> F{"Classify Severity Level"}
+        F -- "0–13" --> G1["Low Stress"]
+        F -- "14–20" --> G2["Moderate Stress"]
+        F -- "21–26" --> G3["High Stress"]
+        F -- "27–40" --> G4["Severe Stress"]
+    end
+
+    subgraph ESCALATION ["🚨 Guidance Counselor Alert"]
+        G4 --> H["Trigger Urgent Alert System"]
+        H --> I["Update Supabase assessments table"]
+        I --> J["Counselor Dashboard Flag"]
+    end
+
+    subgraph RECS_GEN ["💡 AI Recommendation Engine"]
+        E --> K["Format Prompt (Score + Workload JSON)"]
+        K --> L["Groq API (Llama-3.3-70b)"]
+        L --> M["Parse JSON Array"]
+        M --> N["Display Personalized Action Cards"]
+    end
+
+    subgraph CHAT_ENGINE ["💬 Groq Chat & Emotion Analysis"]
+        D --> O["Load Session History (localStorage/Supabase)"]
+        O --> P["User Message (Text / STT Mic Input)"]
+        P --> Q["Real-Time Emotion Classifier"]
+        Q --> R["Update UI Emotion Badge"]
+        P --> S["Inject Context (Name, PSS Score, Grade)"]
+        S --> T["Groq API (Conversational Assistant)"]
+        T --> U{"Check API Status"}
+        U -- "HTTP 429" --> V["Start 60s Rate-Limit Countdown"]
+        U -- "Success" --> W["Append AI Response & Auto-TTS"]
+        W --> X["Save Message to Session History"]
+    end
+
+    classDef primary fill:#112240,stroke:#00D4FF,stroke-width:2px,color:#fff;
+    classDef warning fill:#2A1B0E,stroke:#F59E0B,stroke-width:2px,color:#fff;
+    classDef danger fill:#2D1517,stroke:#EF4444,stroke-width:2px,color:#fff;
+    classDef success fill:#0D2818,stroke:#10B981,stroke-width:2px,color:#fff;
+
+    class USER_LAYER,CHAT_ENGINE primary;
+    class G1,G2 success;
+    class G3 warning;
+    class G4,H,I,J danger;`;
+
+    // Initialize Mermaid
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'dark',
+      securityLevel: 'loose',
+      themeVariables: {
+        darkMode: true,
+        background: 'transparent',
+        primaryColor: '#112240',
+        primaryBorderColor: '#00D4FF',
+        primaryTextColor: '#E6F1FF',
+        lineColor: '#64FFDA',
+        fontFamily: 'Inter, sans-serif'
+      }
+    });
+
+    const codeInput = document.getElementById('mermaid-code');
+    const targetDiv = document.getElementById('diagram-target');
+    const errorToast = document.getElementById('error-toast');
+    const statusIndicator = document.getElementById('status-indicator');
+
+    codeInput.value = DEFAULT_WORKFLOW;
+
+    async function renderDiagram() {
+      const code = codeInput.value.trim();
+      errorToast.style.display = 'none';
+      statusIndicator.textContent = '⚡ Rendering...';
+      statusIndicator.style.color = 'var(--accent-blue)';
+
+      try {
+        targetDiv.innerHTML = '';
+        const { svg } = await mermaid.render('mermaid-svg-render', code);
+        targetDiv.innerHTML = svg;
+        statusIndicator.textContent = '● Live Sync';
+        statusIndicator.style.color = 'var(--accent-cyan)';
+      } catch (err) {
+        errorToast.style.display = 'block';
+        errorToast.textContent = 'Syntax Error: ' + err.message;
+        statusIndicator.textContent = '⚠️ Syntax Error';
+        statusIndicator.style.color = '#EF4444';
+      }
+    }
+
+    // Debounce typings
+    let timeoutId = null;
+    codeInput.addEventListener('input', () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(renderDiagram, 400);
+    });
+
+    document.getElementById('render-btn').addEventListener('click', renderDiagram);
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      codeInput.value = DEFAULT_WORKFLOW;
+      renderDiagram();
+    });
+
+    document.getElementById('copy-btn').addEventListener('click', () => {
+      navigator.clipboard.writeText(codeInput.value);
+      alert('Mermaid workflow code copied to clipboard!');
+    });
+
+    // Initial render
+    window.addEventListener('DOMContentLoaded', renderDiagram);
+  </script>
+
+</body>
+</html>
