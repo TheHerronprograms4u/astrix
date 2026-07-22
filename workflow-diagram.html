@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>PSYCHE AI — Architecture & Workflow Diagram Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PSYCHE AI — Mobile-Responsive Diagram Generator</title>
   <!-- Google Fonts & Mermaid JS -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,7 +37,7 @@
     }
 
     header {
-      padding: 12px 16px;
+      padding: 10px 16px;
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
@@ -51,16 +51,16 @@
     .brand {
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-size: 1.05rem;
+      gap: 8px;
+      font-size: 1rem;
       font-weight: 700;
       letter-spacing: -0.3px;
       white-space: nowrap;
     }
 
     .brand-icon {
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       border-radius: 8px;
       background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
       display: flex;
@@ -72,25 +72,25 @@
 
     .brand span { color: var(--accent-blue); }
 
-    .actions { display: flex; gap: 8px; flex-wrap: nowrap; overflow-x: auto; }
+    .actions { display: flex; gap: 6px; flex-wrap: nowrap; }
 
     .btn {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border);
       color: var(--text-main);
-      padding: 7px 12px;
+      padding: 6px 10px;
       border-radius: 8px;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 500;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 5px;
+      gap: 4px;
       transition: all 0.2s;
       user-select: none;
       white-space: nowrap;
-      min-height: 36px;
+      min-height: 34px;
     }
 
     .btn:hover, .btn:active {
@@ -107,7 +107,6 @@
       box-shadow: 0 4px 12px rgba(0, 212, 255, 0.25);
     }
 
-    /* Mobile View Toggle Bar */
     .mobile-tab-bar {
       display: none;
       background: rgba(10, 25, 47, 0.95);
@@ -118,12 +117,12 @@
 
     .mobile-tab-bar .tab-btn {
       flex: 1;
-      padding: 8px;
+      padding: 7px;
       border-radius: 8px;
       border: 1px solid var(--border);
       background: transparent;
       color: var(--text-sub);
-      font-size: 0.83rem;
+      font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
       text-align: center;
@@ -139,18 +138,18 @@
     main {
       flex: 1;
       display: grid;
-      grid-template-columns: 360px 1fr;
+      grid-template-columns: 340px 1fr;
       gap: 12px;
       padding: 12px;
-      height: calc(100vh - 60px);
+      height: calc(100vh - 55px);
       overflow: hidden;
     }
 
     .editor-panel {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
+      border-radius: 12px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
       backdrop-filter: blur(12px);
@@ -158,7 +157,7 @@
     }
 
     .panel-header {
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -166,7 +165,7 @@
     }
 
     .panel-header h3 {
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-weight: 600;
       color: var(--accent-cyan);
     }
@@ -177,14 +176,13 @@
       background: rgba(10, 25, 47, 0.85);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 12px;
+      padding: 10px;
       color: #A5F3FC;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.8rem;
-      line-height: 1.45;
+      font-size: 0.78rem;
+      line-height: 1.4;
       outline: none;
       resize: none;
-      transition: border-color 0.2s;
     }
 
     textarea:focus {
@@ -194,8 +192,8 @@
     .diagram-panel {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
+      border-radius: 12px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
       position: relative;
@@ -206,17 +204,16 @@
 
     .zoom-toolbar {
       display: flex;
-      gap: 6px;
+      gap: 4px;
       align-items: center;
       background: rgba(10, 25, 47, 0.85);
       border: 1px solid var(--border);
-      padding: 4px 8px;
+      padding: 3px 6px;
       border-radius: 8px;
-      overflow-x: auto;
     }
 
     .zoom-badge {
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       font-weight: 600;
       color: var(--accent-cyan);
       min-width: 40px;
@@ -236,7 +233,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      touch-action: none; /* Disables default touch scroll to allow smooth pan/zoom */
+      touch-action: none;
     }
 
     .viewport:active {
@@ -246,71 +243,82 @@
     #diagram-wrapper {
       transform-origin: center center;
       transition: transform 0.05s ease-out;
-      display: inline-block;
-      padding: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Clean Auto-Fit & Dynamic Text Alignment Styling */
+    #diagram-target {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     #diagram-target svg {
-      max-width: none !important;
-      height: auto !important;
-      min-width: 800px;
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
     }
 
     #diagram-target .node rect,
     #diagram-target .node circle,
     #diagram-target .node polygon,
     #diagram-target .node path {
-      stroke-width: 2.5px !important;
-      rx: 12px !important;
-      ry: 12px !important;
+      stroke-width: 2px !important;
+      rx: 8px !important;
+      ry: 8px !important;
     }
 
     #diagram-target foreignObject div {
-      white-space: normal !important;
-      word-wrap: break-word !important;
+      white-space: nowrap !important; /* Keep labels clean & horizontal */
+      word-wrap: normal !important;
       text-align: center !important;
-      font-size: 14px !important;
+      font-size: 13px !important;
       font-weight: 600 !important;
-      line-height: 1.4 !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      padding: 6px 12px !important;
+      line-height: 1.3 !important;
+      display: inline-block !important;
+      padding: 6px 14px !important;
     }
 
     .error-toast {
       background: rgba(239, 68, 68, 0.2);
       border: 1px solid #EF4444;
       color: #FCA5A5;
-      padding: 10px 12px;
+      padding: 8px 10px;
       border-radius: 8px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       margin-top: 8px;
       display: none;
     }
 
-    /* Mobile Responsive Breakpoints */
     @media (max-width: 768px) {
       body { overflow: auto; }
-      header { padding: 10px 14px; }
+      header { padding: 8px 12px; }
       .brand-title { display: none; }
       .mobile-tab-bar { display: flex; }
 
       main {
         display: block;
-        height: calc(100vh - 105px);
-        padding: 8px;
+        height: calc(100vh - 95px);
+        padding: 6px;
       }
 
       .editor-panel, .diagram-panel {
         height: 100%;
-        border-radius: 10px;
+        border-radius: 8px;
       }
 
       .mobile-hide { display: none !important; }
 
-      #diagram-target svg {
-        min-width: 600px;
+      #diagram-target foreignObject div {
+        font-size: 11px !important;
+        padding: 4px 8px !important;
       }
     }
   </style>
@@ -320,11 +328,12 @@
   <header>
     <div class="brand">
       <div class="brand-icon">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6v6l4 2"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6v6l4 2"/></svg>
       </div>
       <div class="brand-title">PSYCHE <span>AI Workflow</span></div>
     </div>
     <div class="actions">
+      <button class="btn" id="fit-btn" title="Fit to Screen">📐 Fit</button>
       <button class="btn" id="reset-btn">Reset</button>
       <button class="btn" id="copy-btn">Copy</button>
       <button class="btn btn-primary" id="render-btn">Render</button>
@@ -333,7 +342,7 @@
 
   <!-- Mobile Mode Switcher Bar -->
   <div class="mobile-tab-bar">
-    <button class="tab-btn active" id="tab-canvas-btn">🎨 View Canvas</button>
+    <button class="tab-btn active" id="tab-canvas-btn">🎨 View Diagram</button>
     <button class="tab-btn" id="tab-editor-btn">📝 Edit Code</button>
   </div>
 
@@ -342,16 +351,16 @@
     <div class="editor-panel mobile-hide" id="editor-panel">
       <div class="panel-header">
         <h3>Mermaid Code Editor</h3>
-        <span style="font-size:0.75rem; color:var(--text-sub);">Real-time Sync</span>
+        <span style="font-size:0.72rem; color:var(--text-sub);">Auto Sync</span>
       </div>
       <textarea id="mermaid-code" spellcheck="false"></textarea>
       <div class="error-toast" id="error-toast"></div>
     </div>
 
-    <!-- Right: Diagram Visualizer with Touch & Pan/Zoom -->
+    <!-- Right: Diagram Visualizer with Touch & Auto-Fit -->
     <div class="diagram-panel" id="diagram-panel">
       <div class="panel-header">
-        <div style="display:flex; align-items:center; gap:8px;">
+        <div style="display:flex; align-items:center; gap:6px;">
           <h3>Workflow Canvas</h3>
         </div>
         <div class="zoom-toolbar">
@@ -371,71 +380,72 @@
   </main>
 
   <script>
+    // Clean, natural horizontal labels without line wrapping bugs
     const DEFAULT_WORKFLOW = `flowchart TD
-    %% PSYCHE AI Workflow Diagram (Mobile & Touch Optimized)
+    %% PSYCHE AI System Architecture & Workflow Diagram
 
     subgraph USER_LAYER ["👤 User Layer"]
-        A["Student Login<br/>& Session Auth"] --> B{"Choose Action"}
-        B -- Start New --> C["PSS-10 Stress &<br/>Workload Form"]
-        B -- Open Chat --> D["Interactive AI<br/>Chat Companion"]
+        A["Student Auth Session"] --> B{"Action Choice"}
+        B -- New Assessment --> C["PSS-10 & Workload Form"]
+        B -- Open Chat --> D["Interactive AI Companion"]
     end
 
-    subgraph ASSESSMENT_ENGINE ["📊 Assessment & Classifier"]
-        C --> E["Calculate PSS Score<br/>(Range: 0 – 40)"]
-        E --> F{"Classify Stress<br/>Severity Level"}
-        F -- "0–13" --> G1["Low Stress<br/>Level"]
-        F -- "14–20" --> G2["Moderate Stress<br/>Level"]
-        F -- "21–26" --> G3["High Stress<br/>Level"]
-        F -- "27–40" --> G4["Severe Stress<br/>Level"]
+    subgraph ASSESSMENT_ENGINE ["📊 Stress Classifier"]
+        C --> E["Compute PSS Score (0–40)"]
+        E --> F{"Classify Stress Severity"}
+        F -- "0–13" --> G1["Low Stress"]
+        F -- "14–20" --> G2["Moderate Stress"]
+        F -- "21–26" --> G3["High Stress"]
+        F -- "27–40" --> G4["Severe Stress"]
     end
 
-    subgraph ESCALATION ["🚨 Counselor Escalation"]
-        G4 --> H["Trigger Urgent<br/>Counselor Alert"]
-        H --> I["Update Supabase<br/>assessments table"]
-        I --> J["Flag Profile on<br/>Counselor Dashboard"]
+    subgraph ESCALATION ["🚨 Counselor Alert"]
+        G4 --> H["Trigger Urgent Counselor Alert"]
+        H --> I["Update Supabase Record"]
+        I --> J["Flag Profile on Counselor Dashboard"]
     end
 
     subgraph RECS_GEN ["💡 AI Recommendations"]
-        E --> K["Construct System Prompt<br/>(Score + Workload Data)"]
-        K --> L["Groq API Request<br/>(Llama-3.3-70b Engine)"]
-        L --> M["Parse Structured<br/>JSON Array Output"]
-        M --> N["Display 3 Actionable<br/>Wellness Cards"]
+        E --> K["Format System Prompt (Score + Workload)"]
+        K --> L["Groq API Request (Llama 3.3 70B)"]
+        L --> M["Parse JSON Recommendations"]
+        M --> N["Display 3 Wellness Cards"]
     end
 
     subgraph CHAT_ENGINE ["💬 Groq Chat Engine"]
-        D --> O["Load Session History<br/>(localStorage/Supabase)"]
-        O --> P["User Input<br/>(Text / Speech STT)"]
-        P --> Q["Real-Time Emotion<br/>Sentiment Classifier"]
-        Q --> R["Update Dynamic UI<br/>Emotion Status Badge"]
-        P --> S["Inject System Context<br/>(Name, Grade, PSS Score)"]
-        S --> T["Groq API Call<br/>(LLM Assistant)"]
-        T --> U{"Check API Status"}
-        U -- "HTTP 429" --> V["60s Visible<br/>Rate Countdown"]
-        U -- "Success" --> W["Append AI Reply &<br/>Trigger Auto-TTS"]
-        W --> X["Save Pair to<br/>Session History"]
+        D --> O["Load Session History"]
+        O --> P["User Input (Text or Voice STT)"]
+        P --> Q["Real-Time Emotion Classifier"]
+        Q --> R["Update UI Emotion Badge"]
+        P --> S["Inject System Context (Name, PSS Score)"]
+        S --> T["Groq API Call (LLM Assistant)"]
+        T --> U{"API Status Check"}
+        U -- "HTTP 429" --> V["60s Visible Rate Countdown"]
+        U -- "Success" --> W["Append AI Reply & Auto-TTS"]
+        W --> X["Save Pair to Session History"]
     end
 
-    classDef primary fill:#112240,stroke:#00D4FF,stroke-width:2.5px,color:#fff;
-    classDef warning fill:#2A1B0E,stroke:#F59E0B,stroke-width:2.5px,color:#fff;
-    classDef danger fill:#2D1517,stroke:#EF4444,stroke-width:2.5px,color:#fff;
-    classDef success fill:#0D2818,stroke:#10B981,stroke-width:2.5px,color:#fff;
+    classDef primary fill:#112240,stroke:#00D4FF,stroke-width:2px,color:#fff;
+    classDef warning fill:#2A1B0E,stroke:#F59E0B,stroke-width:2px,color:#fff;
+    classDef danger fill:#2D1517,stroke:#EF4444,stroke-width:2px,color:#fff;
+    classDef success fill:#0D2818,stroke:#10B981,stroke-width:2px,color:#fff;
 
     class USER_LAYER,CHAT_ENGINE primary;
     class G1,G2 success;
     class G3 warning;
     class G4,H,I,J danger;`;
 
-    // Initialize Mermaid
+    // Initialize Mermaid with Responsive Max-Width Auto-Fit enabled
     mermaid.initialize({
       startOnLoad: false,
       theme: 'dark',
       securityLevel: 'loose',
       flowchart: {
         htmlLabels: true,
-        useMaxWidth: false,
-        nodeSpacing: 45,
-        rankSpacing: 55,
-        padding: 20
+        useMaxWidth: true, // Scales SVG perfectly to fit phone container
+        nodeSpacing: 35,
+        rankSpacing: 45,
+        padding: 14
       },
       themeVariables: {
         darkMode: true,
@@ -458,14 +468,13 @@
     codeInput.value = DEFAULT_WORKFLOW;
 
     // Pan & Zoom State
-    let scale = window.innerWidth <= 768 ? 0.75 : 1.1;
+    let scale = 1.0;
     let pointX = 0;
     let pointY = 0;
     let startX = 0;
     let startY = 0;
     let isDragging = false;
 
-    // Touch gesture pinch state
     let touchStartDist = 0;
     let initialScale = 1;
 
@@ -475,19 +484,19 @@
     }
 
     function zoom(deltaScale) {
-      const newScale = Math.min(Math.max(0.25, scale + deltaScale), 4.0);
+      const newScale = Math.min(Math.max(0.2, scale + deltaScale), 3.0);
       scale = newScale;
       updateTransform();
     }
 
-    function resetView() {
-      scale = window.innerWidth <= 768 ? 0.75 : 1.1;
+    function fitToScreen() {
+      scale = 1.0;
       pointX = 0;
       pointY = 0;
       updateTransform();
     }
 
-    // --- Mouse Pan & Zoom ---
+    // --- Mouse Events ---
     viewport.addEventListener('mousedown', (e) => {
       isDragging = true;
       startX = e.clientX - pointX;
@@ -505,11 +514,11 @@
 
     viewport.addEventListener('wheel', (e) => {
       e.preventDefault();
-      const zoomFactor = e.deltaY < 0 ? 0.12 : -0.12;
+      const zoomFactor = e.deltaY < 0 ? 0.1 : -0.1;
       zoom(zoomFactor);
     }, { passive: false });
 
-    // --- Touch Pan & Pinch-to-Zoom for Mobile Devices ---
+    // --- Touch Events ---
     viewport.addEventListener('touchstart', (e) => {
       if (e.touches.length === 1) {
         isDragging = true;
@@ -536,7 +545,7 @@
           e.touches[0].clientY - e.touches[1].clientY
         );
         const factor = dist / touchStartDist;
-        scale = Math.min(Math.max(0.25, initialScale * factor), 4.0);
+        scale = Math.min(Math.max(0.2, initialScale * factor), 3.0);
         updateTransform();
       }
     }, { passive: true });
@@ -546,12 +555,13 @@
       touchStartDist = 0;
     });
 
-    // Toolbar Buttons
+    // Toolbar Controls
     document.getElementById('zoom-in-btn').addEventListener('click', () => zoom(0.2));
     document.getElementById('zoom-out-btn').addEventListener('click', () => zoom(-0.2));
-    document.getElementById('zoom-reset-btn').addEventListener('click', resetView);
+    document.getElementById('zoom-reset-btn').addEventListener('click', fitToScreen);
+    document.getElementById('fit-btn').addEventListener('click', fitToScreen);
 
-    // Mobile View Switcher Tabs
+    // Mobile Switcher Tabs
     const tabCanvasBtn = document.getElementById('tab-canvas-btn');
     const tabEditorBtn = document.getElementById('tab-editor-btn');
     const editorPanel  = document.getElementById('editor-panel');
@@ -563,6 +573,7 @@
         tabEditorBtn.classList.remove('active');
         diagramPanel.classList.remove('mobile-hide');
         editorPanel.classList.add('mobile-hide');
+        fitToScreen();
       });
 
       tabEditorBtn.addEventListener('click', () => {
@@ -581,7 +592,7 @@
         targetDiv.innerHTML = '';
         const { svg } = await mermaid.render('mermaid-svg-render', code);
         targetDiv.innerHTML = svg;
-        resetView();
+        fitToScreen();
       } catch (err) {
         errorToast.style.display = 'block';
         errorToast.textContent = 'Syntax Error: ' + err.message;
@@ -607,6 +618,7 @@
     });
 
     window.addEventListener('DOMContentLoaded', renderDiagram);
+    window.addEventListener('resize', fitToScreen);
   </script>
 
 </body>
