@@ -1168,7 +1168,7 @@ FORMATTING: Use HTML <p>, <strong>, and <ul> tags for formatting. Do NOT use mar
   ];
 }
 
-function appendChatMessage(container, text, role, typing) {
+function appendChatMessage(container, text, role, typingTarget) {
   const div = document.createElement('div');
   const formattedText = role === 'ai' ? marked.parse(text) : text;
   if (role === 'user') {
@@ -1188,7 +1188,13 @@ function appendChatMessage(container, text, role, typing) {
       speakText(plainText, btn);
     });
   }
-  container.insertBefore(div, typing);
+  
+  const typing = (typingTarget && typingTarget.parentNode === container) ? typingTarget : container.querySelector('#typing-indicator');
+  if (typing && typing.parentNode === container) {
+    container.insertBefore(div, typing);
+  } else {
+    container.appendChild(div);
+  }
   container.scrollTop = container.scrollHeight;
 }
 
@@ -1242,7 +1248,11 @@ function startRateLimitCountdown() {
   let secs        = 60;
   const render    = () => `<div class="ai-avatar-small"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="margin:9px"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg></div><div class="message-content"><p>⚡ AI is temporarily rate-limited. Ready again in <strong>${secs}s</strong>…</p></div>`;
   div.innerHTML   = render();
-  messages.insertBefore(div, typing);
+  if (typing && typing.parentNode === messages) {
+    messages.insertBefore(div, typing);
+  } else {
+    messages.appendChild(div);
+  }
   messages.scrollTop = messages.scrollHeight;
   const timer = setInterval(() => {
     secs--;
