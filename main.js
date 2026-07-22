@@ -40,6 +40,8 @@ let assessmentStep     = 0;
 let selectedMood       = null;
 let breathInterval     = null;
 let chatHistory        = [];
+let chatSessions       = [];
+let currentSessionId   = null;
 let _chatbotInited     = false;  // guard: only attach chat listeners once
 let _dashNavInited     = false;  // guard: only attach nav tab listeners once
 let _dashBtnsInited    = false;  // guard: only attach dashboard button listeners once
@@ -758,8 +760,239 @@ function startBreathingCycle() {
   run();
 }
 
-// ── CHATBOT ──────────────────────────────────────────────────
+// ── CHATBOT & HISTORY ──────────────────────────────────────────
 let _isSending = false; // prevent double-sends
+
+function getChatStorageKey() {
+  return `psyche_chats_${currentUser?.id || 'guest'}`;
+}
+
+function loadChatSessions() {
+  try {
+    const raw = localStorage.getItem(getChatStorageKey());
+    chatSessions = raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error('Failed to load chat sessions', e);
+    chatSessions = [];
+  }
+}
+
+function saveChatSessions() {
+  try {
+    localStorage.setItem(getChatStorageKey(), JSON.stringify(chatSessions));
+  } catch (e) {
+    console.error('Failed to save chat sessions', e);
+  }
+}
+
+function formatChatTimeAgo(isoString) {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function escapeHtml(str) {
+  return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function renderChatHistoryList(filterQuery = '') {
+  const container = document.getElementById('chat-history-list');
+  if (!container) return;
+
+  const query = filterQuery.toLowerCase().trim();
+  const filtered = chatSessions.filter(s => {
+    if (!query) return true;
+    const inTitle = (s.title || '').toLowerCase().includes(query);
+    const inMsg = (s.messages || []).some(m => (m.content || '').toLowerCase().includes(query));
+    return inTitle || inMsg;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div style="text-align:center;padding:24px 12px;color:var(--text-secondary);font-size:0.83rem;">${query ? 'No matching chats found' : 'No past conversations yet.'}</div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(sess => {
+    const isActive = sess.id === currentSessionId;
+    return `
+      <div class="history-item ${isActive ? 'active' : ''}" data-id="${sess.id}">
+        <div class="history-item-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="history-item-info">
+          <div class="history-item-title" title="${escapeHtml(sess.title)}">${escapeHtml(sess.title)}</div>
+          <div class="history-item-time">${formatChatTimeAgo(sess.updatedAt)}</div>
+        </div>
+        <button class="history-item-del" data-id="${sess.id}" title="Delete session">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  container.querySelectorAll('.history-item').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('.history-item-del')) return;
+      const id = el.dataset.id;
+      switchChatSession(id);
+    });
+  });
+
+  container.querySelectorAll('.history-item-del').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      deleteChatSession(id);
+    });
+  });
+}
+
+function createNewChatSession() {
+  const newSess = {
+    id: `sess_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+    title: 'New Conversation',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    messages: []
+  };
+  chatSessions.unshift(newSess);
+  currentSessionId = newSess.id;
+  saveChatSessions();
+  switchChatSession(newSess.id);
+  renderChatHistoryList();
+}
+
+function switchChatSession(sessionId) {
+  const sess = chatSessions.find(s => s.id === sessionId);
+  if (!sess) return;
+  currentSessionId = sessionId;
+
+  const messagesEl = document.getElementById('chat-messages');
+  const titleEl    = document.getElementById('current-chat-title');
+
+  if (titleEl) {
+    titleEl.textContent = sess.title || 'PSYCHE Assistant';
+  }
+
+  if (messagesEl) {
+    messagesEl.innerHTML = '';
+    // Add welcome message
+    const welcomeDiv = document.createElement('div');
+    welcomeDiv.className = 'message ai-message';
+    welcomeDiv.innerHTML = `
+      <div class="ai-avatar-small"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="margin:10px"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg></div>
+      <div class="message-content" id="chat-welcome-msg"><p>Hi! I'm here to support you. How are you feeling today?</p></div>
+    `;
+    messagesEl.appendChild(welcomeDiv);
+
+    // Typing indicator
+    const newTyping = document.createElement('div');
+    newTyping.className = 'typing-indicator hidden';
+    newTyping.id = 'typing-indicator';
+    newTyping.innerHTML = '<span></span><span></span><span></span>';
+    messagesEl.appendChild(newTyping);
+  }
+
+  // Re-build chatHistory for AI API context
+  rebuildChatHistory(sess);
+
+  // Render past messages into UI
+  const currentTyping = document.getElementById('typing-indicator');
+  if (sess.messages && sess.messages.length > 0) {
+    sess.messages.forEach(m => {
+      appendChatMessage(messagesEl, m.content, m.role === 'user' ? 'user' : 'ai', currentTyping);
+    });
+  }
+
+  renderChatHistoryList();
+}
+
+function rebuildChatHistory(sess) {
+  const sysMsg = chatHistory.find(m => m.role === 'system');
+  const systemPrompt = sysMsg ? sysMsg.content : `PERSONA: You are PSYCHE, a helpful, polite AI assistant.`;
+  
+  chatHistory = [
+    { role: "system", content: systemPrompt },
+    { role: "assistant", content: "Understood. I am PSYCHE, a helpful AI assistant. I am ready to assist you." }
+  ];
+
+  if (sess && sess.messages) {
+    sess.messages.forEach(m => {
+      chatHistory.push({ role: m.role, content: m.content });
+    });
+  }
+}
+
+function saveMessageToCurrentSession(role, content) {
+  if (!currentSessionId || !chatSessions.some(s => s.id === currentSessionId)) {
+    const newSess = {
+      id: `sess_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      title: 'New Conversation',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      messages: []
+    };
+    chatSessions.unshift(newSess);
+    currentSessionId = newSess.id;
+  }
+  
+  const sess = chatSessions.find(s => s.id === currentSessionId);
+  if (!sess) return;
+
+  if ((sess.title === 'New Conversation' || !sess.title) && role === 'user') {
+    let rawTitle = content.trim().replace(/<[^>]*>?/gm, '');
+    sess.title = rawTitle.length > 26 ? rawTitle.substring(0, 26) + '…' : rawTitle;
+    const titleEl = document.getElementById('current-chat-title');
+    if (titleEl) titleEl.textContent = sess.title;
+  }
+
+  sess.messages.push({
+    role: role,
+    content: content,
+    timestamp: new Date().toISOString()
+  });
+
+  sess.updatedAt = new Date().toISOString();
+
+  // Move updated session to top
+  chatSessions = [sess, ...chatSessions.filter(s => s.id !== sess.id)];
+
+  saveChatSessions();
+  renderChatHistoryList();
+}
+
+function deleteChatSession(sessionId) {
+  chatSessions = chatSessions.filter(s => s.id !== sessionId);
+  saveChatSessions();
+
+  if (currentSessionId === sessionId) {
+    if (chatSessions.length > 0) {
+      switchChatSession(chatSessions[0].id);
+    } else {
+      createNewChatSession();
+    }
+  } else {
+    renderChatHistoryList();
+  }
+}
+
+function clearAllChatHistory() {
+  if (!confirm('Are you sure you want to clear all chat history?')) return;
+  chatSessions = [];
+  saveChatSessions();
+  createNewChatSession();
+}
 
 function initChatbot() {
   if (_chatbotInited) return; // only ever attach listeners once
@@ -771,14 +1004,50 @@ function initChatbot() {
   const typing   = document.getElementById('typing-indicator');
   if (!sendBtn || !input || !messages) return;
 
+  // Setup Chat History UI Event Listeners
+  const newChatBtn = document.getElementById('new-chat-btn');
+  if (newChatBtn) {
+    newChatBtn.addEventListener('click', () => createNewChatSession());
+  }
+
+  const clearHistoryBtn = document.getElementById('clear-history-btn');
+  if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener('click', () => clearAllChatHistory());
+  }
+
+  const searchInput = document.getElementById('chat-history-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => renderChatHistoryList(e.target.value));
+  }
+
+  const toggleSidebarBtn = document.getElementById('toggle-chat-sidebar');
+  const sidebar = document.getElementById('chat-sidebar');
+  if (toggleSidebarBtn && sidebar) {
+    toggleSidebarBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('hidden-mobile');
+    });
+  }
+
+  // Load chat sessions from storage
+  loadChatSessions();
+  if (chatSessions.length === 0) {
+    createNewChatSession();
+  } else {
+    switchChatSession(chatSessions[0].id);
+  }
+
   const sendMessage = async () => {
     if (_isSending) return; // block while a reply is in-flight
     const text = input.value.trim();
     if (!text) return;
     _isSending = true;
     sendBtn.disabled = true;
+    
+    // Append to UI & Save to Session
     appendChatMessage(messages, text, 'user', typing);
     chatHistory.push({ role:"user", content: text });
+    saveMessageToCurrentSession('user', text);
+
     input.value = '';
     typing.classList.remove('hidden');
     messages.scrollTop = messages.scrollHeight;
@@ -789,7 +1058,10 @@ function initChatbot() {
       typing.classList.add('hidden');
       return; // startRateLimitCountdown handles re-enabling inputs
     }
+    
     chatHistory.push({ role:"assistant", content: reply });
+    saveMessageToCurrentSession('assistant', reply);
+
     typing.classList.add('hidden');
     appendChatMessage(messages, reply, 'ai', typing);
     // Auto-speak the AI reply if user used voice input

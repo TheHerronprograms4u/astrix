@@ -449,11 +449,44 @@
         <!-- CHAT VIEW -->
         <div id="view-chat" class="hidden" style="margin-top:32px;">
           <div class="chat-page-layout">
-            <div class="chatbot-container glass-panel" style="max-width:100%;height:calc(100vh - 220px);">
+            <!-- CHAT HISTORY SIDEBAR -->
+            <div class="chat-history-sidebar glass-panel" id="chat-sidebar">
+              <div class="sidebar-header">
+                <div class="sidebar-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  <span>Chat History</span>
+                </div>
+                <button class="btn-new-chat" id="new-chat-btn" title="Start New Conversation">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <span>New Chat</span>
+                </button>
+              </div>
+              <div class="history-search-wrap">
+                <input type="text" id="chat-history-search" placeholder="Search conversations..." />
+              </div>
+              <div class="history-list" id="chat-history-list">
+                <!-- Dynamically populated history sessions -->
+              </div>
+              <div class="sidebar-footer">
+                <button class="btn-clear-history" id="clear-history-btn" title="Clear all chat history">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  <span>Clear History</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- MAIN CHAT CONTAINER -->
+            <div class="chatbot-container glass-panel" style="max-width:100%;height:100%;">
               <div class="chatbot-header">
                 <div class="chatbot-info">
+                  <button class="btn-toggle-sidebar" id="toggle-chat-sidebar" title="Toggle History">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                  </button>
                   <div class="ai-avatar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="margin:8px"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6v6l4 2"/></svg></div>
-                  <div><h4>PSYCHE Assistant</h4><span class="status-online"><span class="dot success"></span> Online · Powered by Llama 3</span></div>
+                  <div>
+                    <h4 id="current-chat-title">PSYCHE Assistant</h4>
+                    <span class="status-online"><span class="dot success"></span> Online · Powered by Llama 3</span>
+                  </div>
                 </div>
                 <div class="chatbot-actions">
                   <span class="badge violet-badge" id="chat-emotion-badge">Emotion: –</span>
