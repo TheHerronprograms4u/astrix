@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>PSYCHE AI — Architecture & Workflow Diagram Generator</title>
   <!-- Google Fonts & Mermaid JS -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,7 +22,7 @@
       --border: rgba(255, 255, 255, 0.1);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
 
     body {
       background: var(--bg-dark);
@@ -37,7 +37,7 @@
     }
 
     header {
-      padding: 16px 24px;
+      padding: 12px 16px;
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
@@ -45,49 +45,55 @@
       background: rgba(10, 25, 47, 0.9);
       backdrop-filter: blur(10px);
       z-index: 10;
+      gap: 10px;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
-      font-size: 1.2rem;
+      gap: 10px;
+      font-size: 1.05rem;
       font-weight: 700;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.3px;
+      white-space: nowrap;
     }
 
     .brand-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
       background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+      flex-shrink: 0;
     }
 
     .brand span { color: var(--accent-blue); }
 
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .actions { display: flex; gap: 8px; flex-wrap: nowrap; overflow-x: auto; }
 
     .btn {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border);
       color: var(--text-main);
-      padding: 8px 14px;
-      border-radius: 10px;
-      font-size: 0.85rem;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 0.82rem;
       font-weight: 500;
       cursor: pointer;
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 6px;
+      justify-content: center;
+      gap: 5px;
       transition: all 0.2s;
       user-select: none;
+      white-space: nowrap;
+      min-height: 36px;
     }
 
-    .btn:hover {
+    .btn:hover, .btn:active {
       background: rgba(0, 212, 255, 0.15);
       border-color: var(--accent-blue);
       color: white;
@@ -98,29 +104,53 @@
       border: none;
       color: white;
       font-weight: 600;
-      box-shadow: 0 4px 15px rgba(0, 212, 255, 0.25);
+      box-shadow: 0 4px 12px rgba(0, 212, 255, 0.25);
     }
 
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+    /* Mobile View Toggle Bar */
+    .mobile-tab-bar {
+      display: none;
+      background: rgba(10, 25, 47, 0.95);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 12px;
+      gap: 8px;
+    }
+
+    .mobile-tab-bar .tab-btn {
+      flex: 1;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-sub);
+      font-size: 0.83rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .mobile-tab-bar .tab-btn.active {
+      background: rgba(0, 212, 255, 0.15);
+      border-color: var(--accent-blue);
+      color: var(--accent-cyan);
     }
 
     main {
       flex: 1;
       display: grid;
-      grid-template-columns: 380px 1fr;
-      gap: 16px;
-      padding: 16px;
-      height: calc(100vh - 70px);
+      grid-template-columns: 360px 1fr;
+      gap: 12px;
+      padding: 12px;
+      height: calc(100vh - 60px);
       overflow: hidden;
     }
 
     .editor-panel {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px;
+      border-radius: 14px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
       backdrop-filter: blur(12px);
@@ -128,14 +158,15 @@
     }
 
     .panel-header {
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
     }
 
     .panel-header h3 {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 600;
       color: var(--accent-cyan);
     }
@@ -145,12 +176,12 @@
       width: 100%;
       background: rgba(10, 25, 47, 0.85);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px;
+      border-radius: 10px;
+      padding: 12px;
       color: #A5F3FC;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.82rem;
-      line-height: 1.5;
+      font-size: 0.8rem;
+      line-height: 1.45;
       outline: none;
       resize: none;
       transition: border-color 0.2s;
@@ -163,8 +194,8 @@
     .diagram-panel {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px;
+      border-radius: 14px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
       position: relative;
@@ -175,19 +206,20 @@
 
     .zoom-toolbar {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
-      background: rgba(10, 25, 47, 0.8);
+      background: rgba(10, 25, 47, 0.85);
       border: 1px solid var(--border);
-      padding: 6px 12px;
-      border-radius: 10px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      overflow-x: auto;
     }
 
     .zoom-badge {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
       color: var(--accent-cyan);
-      min-width: 45px;
+      min-width: 40px;
       text-align: center;
     }
 
@@ -198,12 +230,13 @@
       overflow: hidden;
       position: relative;
       cursor: grab;
-      border-radius: 12px;
+      border-radius: 10px;
       background: rgba(10, 25, 47, 0.5);
       border: 1px dashed rgba(255, 255, 255, 0.08);
       display: flex;
       align-items: center;
       justify-content: center;
+      touch-action: none; /* Disables default touch scroll to allow smooth pan/zoom */
     }
 
     .viewport:active {
@@ -212,19 +245,17 @@
 
     #diagram-wrapper {
       transform-origin: center center;
-      transition: transform 0.1s ease-out;
+      transition: transform 0.05s ease-out;
       display: inline-block;
-      padding: 60px;
+      padding: 40px;
     }
 
-    /* Node & Text Scaling / Text Wrapping Styles */
     #diagram-target svg {
       max-width: none !important;
       height: auto !important;
-      min-width: 950px;
+      min-width: 800px;
     }
 
-    /* Make nodes larger and text wrapped */
     #diagram-target .node rect,
     #diagram-target .node circle,
     #diagram-target .node polygon,
@@ -234,62 +265,53 @@
       ry: 12px !important;
     }
 
-    #diagram-target .node .label {
-      font-size: 15px !important;
-      font-weight: 600 !important;
-      line-height: 1.45 !important;
-      text-align: center !important;
-      padding: 12px 18px !important;
-    }
-
-    #diagram-target foreignObject {
-      overflow: visible !important;
-    }
-
     #diagram-target foreignObject div {
       white-space: normal !important;
       word-wrap: break-word !important;
       text-align: center !important;
-      font-size: 15px !important;
+      font-size: 14px !important;
       font-weight: 600 !important;
       line-height: 1.4 !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      padding: 8px 14px !important;
-    }
-
-    .cluster label {
-      font-size: 16px !important;
-      font-weight: 700 !important;
-      letter-spacing: 0.5px !important;
-    }
-
-    .edgeLabel {
-      background-color: rgba(10, 25, 47, 0.9) !important;
-      padding: 4px 8px !important;
-      border-radius: 6px !important;
-      font-size: 13px !important;
-      font-weight: 500 !important;
+      padding: 6px 12px !important;
     }
 
     .error-toast {
       background: rgba(239, 68, 68, 0.2);
       border: 1px solid #EF4444;
       color: #FCA5A5;
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-size: 0.83rem;
-      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      margin-top: 8px;
       display: none;
     }
 
-    /* Fullscreen Mode */
-    .fullscreen main {
-      grid-template-columns: 1fr;
-    }
-    .fullscreen .editor-panel {
-      display: none;
+    /* Mobile Responsive Breakpoints */
+    @media (max-width: 768px) {
+      body { overflow: auto; }
+      header { padding: 10px 14px; }
+      .brand-title { display: none; }
+      .mobile-tab-bar { display: flex; }
+
+      main {
+        display: block;
+        height: calc(100vh - 105px);
+        padding: 8px;
+      }
+
+      .editor-panel, .diagram-panel {
+        height: 100%;
+        border-radius: 10px;
+      }
+
+      .mobile-hide { display: none !important; }
+
+      #diagram-target svg {
+        min-width: 600px;
+      }
     }
   </style>
 </head>
@@ -298,20 +320,26 @@
   <header>
     <div class="brand">
       <div class="brand-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6v6l4 2"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6v6l4 2"/></svg>
       </div>
-      <div>PSYCHE <span>AI Workflow Diagram Generator</span></div>
+      <div class="brand-title">PSYCHE <span>AI Workflow</span></div>
     </div>
     <div class="actions">
-      <button class="btn" id="reset-btn">Reset Default</button>
-      <button class="btn" id="copy-btn">Copy Code</button>
+      <button class="btn" id="reset-btn">Reset</button>
+      <button class="btn" id="copy-btn">Copy</button>
       <button class="btn btn-primary" id="render-btn">Render</button>
     </div>
   </header>
 
+  <!-- Mobile Mode Switcher Bar -->
+  <div class="mobile-tab-bar">
+    <button class="tab-btn active" id="tab-canvas-btn">🎨 View Canvas</button>
+    <button class="tab-btn" id="tab-editor-btn">📝 Edit Code</button>
+  </div>
+
   <main id="main-container">
     <!-- Left: Code Editor -->
-    <div class="editor-panel">
+    <div class="editor-panel mobile-hide" id="editor-panel">
       <div class="panel-header">
         <h3>Mermaid Code Editor</h3>
         <span style="font-size:0.75rem; color:var(--text-sub);">Real-time Sync</span>
@@ -320,19 +348,17 @@
       <div class="error-toast" id="error-toast"></div>
     </div>
 
-    <!-- Right: Diagram Visualizer with Pan & Zoom -->
-    <div class="diagram-panel">
+    <!-- Right: Diagram Visualizer with Touch & Pan/Zoom -->
+    <div class="diagram-panel" id="diagram-panel">
       <div class="panel-header">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <h3>Interactive Workflow Canvas</h3>
-          <span style="font-size:0.75rem; color:var(--text-sub);">Drag to Pan • Scroll to Zoom</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <h3>Workflow Canvas</h3>
         </div>
         <div class="zoom-toolbar">
-          <button class="btn" id="zoom-out-btn" title="Zoom Out (Scroll Down)">🔍 -</button>
-          <span class="zoom-badge" id="zoom-val">120%</span>
-          <button class="btn" id="zoom-in-btn" title="Zoom In (Scroll Up)">🔍 +</button>
+          <button class="btn" id="zoom-out-btn" title="Zoom Out">🔍 -</button>
+          <span class="zoom-badge" id="zoom-val">100%</span>
+          <button class="btn" id="zoom-in-btn" title="Zoom In">🔍 +</button>
           <button class="btn" id="zoom-reset-btn" title="Reset View">🔄 Reset</button>
-          <button class="btn" id="toggle-fs-btn" title="Toggle Fullscreen Canvas">⛶ Expand</button>
         </div>
       </div>
 
@@ -346,16 +372,16 @@
 
   <script>
     const DEFAULT_WORKFLOW = `flowchart TD
-    %% PSYCHE AI System Architecture & Workflow Diagram (Wrapped Text & Large Auto-Sized Shapes)
+    %% PSYCHE AI Workflow Diagram (Mobile & Touch Optimized)
 
-    subgraph USER_LAYER ["👤 User & Authentication Layer"]
+    subgraph USER_LAYER ["👤 User Layer"]
         A["Student Login<br/>& Session Auth"] --> B{"Choose Action"}
-        B -- Start New --> C["PSS-10 Stress &<br/>Workload Questionnaire"]
+        B -- Start New --> C["PSS-10 Stress &<br/>Workload Form"]
         B -- Open Chat --> D["Interactive AI<br/>Chat Companion"]
     end
 
-    subgraph ASSESSMENT_ENGINE ["📊 Stress Score & Classifier"]
-        C --> E["Calculate Total PSS Score<br/>(Range: 0 – 40)"]
+    subgraph ASSESSMENT_ENGINE ["📊 Assessment & Classifier"]
+        C --> E["Calculate PSS Score<br/>(Range: 0 – 40)"]
         E --> F{"Classify Stress<br/>Severity Level"}
         F -- "0–13" --> G1["Low Stress<br/>Level"]
         F -- "14–20" --> G2["Moderate Stress<br/>Level"]
@@ -363,30 +389,30 @@
         F -- "27–40" --> G4["Severe Stress<br/>Level"]
     end
 
-    subgraph ESCALATION ["🚨 Guidance Counselor Alert"]
-        G4 --> H["Trigger Urgent<br/>Counselor Notification"]
+    subgraph ESCALATION ["🚨 Counselor Escalation"]
+        G4 --> H["Trigger Urgent<br/>Counselor Alert"]
         H --> I["Update Supabase<br/>assessments table"]
-        I --> J["Flag Student Profile<br/>on Counselor Dashboard"]
+        I --> J["Flag Profile on<br/>Counselor Dashboard"]
     end
 
-    subgraph RECS_GEN ["💡 AI Recommendation Engine"]
-        E --> K["Construct System Prompt<br/>(PSS Score + Workload Data)"]
+    subgraph RECS_GEN ["💡 AI Recommendations"]
+        E --> K["Construct System Prompt<br/>(Score + Workload Data)"]
         K --> L["Groq API Request<br/>(Llama-3.3-70b Engine)"]
         L --> M["Parse Structured<br/>JSON Array Output"]
-        M --> N["Display 3 Personalized<br/>Action & Wellness Cards"]
+        M --> N["Display 3 Actionable<br/>Wellness Cards"]
     end
 
-    subgraph CHAT_ENGINE ["💬 Groq Chat & Emotion Analysis"]
-        D --> O["Load Session History<br/>(localStorage / Supabase)"]
-        O --> P["User Message Input<br/>(Text or Web Speech STT)"]
-        P --> Q["Real-Time Keyword &<br/>Emotion Sentiment Classifier"]
+    subgraph CHAT_ENGINE ["💬 Groq Chat Engine"]
+        D --> O["Load Session History<br/>(localStorage/Supabase)"]
+        O --> P["User Input<br/>(Text / Speech STT)"]
+        P --> Q["Real-Time Emotion<br/>Sentiment Classifier"]
         Q --> R["Update Dynamic UI<br/>Emotion Status Badge"]
         P --> S["Inject System Context<br/>(Name, Grade, PSS Score)"]
-        S --> T["Groq API Call<br/>(LLM Conversational Assistant)"]
+        S --> T["Groq API Call<br/>(LLM Assistant)"]
         T --> U{"Check API Status"}
-        U -- "HTTP 429" --> V["Start 60s Visible<br/>Rate-Limit Countdown"]
-        U -- "Success" --> W["Append AI Reply &<br/>Trigger Auto-TTS Speech"]
-        W --> X["Save Message Pair<br/>to Active Session History"]
+        U -- "HTTP 429" --> V["60s Visible<br/>Rate Countdown"]
+        U -- "Success" --> W["Append AI Reply &<br/>Trigger Auto-TTS"]
+        W --> X["Save Pair to<br/>Session History"]
     end
 
     classDef primary fill:#112240,stroke:#00D4FF,stroke-width:2.5px,color:#fff;
@@ -399,7 +425,7 @@
     class G3 warning;
     class G4,H,I,J danger;`;
 
-    // Initialize Mermaid with htmlLabels & node padding configuration
+    // Initialize Mermaid
     mermaid.initialize({
       startOnLoad: false,
       theme: 'dark',
@@ -407,10 +433,9 @@
       flowchart: {
         htmlLabels: true,
         useMaxWidth: false,
-        nodeSpacing: 55,
-        rankSpacing: 65,
-        padding: 24,
-        curve: 'basis'
+        nodeSpacing: 45,
+        rankSpacing: 55,
+        padding: 20
       },
       themeVariables: {
         darkMode: true,
@@ -419,8 +444,7 @@
         primaryBorderColor: '#00D4FF',
         primaryTextColor: '#E6F1FF',
         lineColor: '#64FFDA',
-        fontFamily: 'Inter, sans-serif',
-        fontSize: '15px'
+        fontFamily: 'Inter, sans-serif'
       }
     });
 
@@ -434,12 +458,16 @@
     codeInput.value = DEFAULT_WORKFLOW;
 
     // Pan & Zoom State
-    let scale = 1.25;
+    let scale = window.innerWidth <= 768 ? 0.75 : 1.1;
     let pointX = 0;
     let pointY = 0;
     let startX = 0;
     let startY = 0;
     let isDragging = false;
+
+    // Touch gesture pinch state
+    let touchStartDist = 0;
+    let initialScale = 1;
 
     function updateTransform() {
       wrapper.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
@@ -447,19 +475,19 @@
     }
 
     function zoom(deltaScale) {
-      const newScale = Math.min(Math.max(0.3, scale + deltaScale), 4.0);
+      const newScale = Math.min(Math.max(0.25, scale + deltaScale), 4.0);
       scale = newScale;
       updateTransform();
     }
 
     function resetView() {
-      scale = 1.25;
+      scale = window.innerWidth <= 768 ? 0.75 : 1.1;
       pointX = 0;
       pointY = 0;
       updateTransform();
     }
 
-    // Mouse Pan Events
+    // --- Mouse Pan & Zoom ---
     viewport.addEventListener('mousedown', (e) => {
       isDragging = true;
       startX = e.clientX - pointX;
@@ -473,28 +501,77 @@
       updateTransform();
     });
 
-    window.addEventListener('mouseup', () => {
-      isDragging = false;
-    });
+    window.addEventListener('mouseup', () => { isDragging = false; });
 
-    // Mouse Wheel Zoom
     viewport.addEventListener('wheel', (e) => {
       e.preventDefault();
-      const zoomFactor = e.deltaY < 0 ? 0.15 : -0.15;
+      const zoomFactor = e.deltaY < 0 ? 0.12 : -0.12;
       zoom(zoomFactor);
     }, { passive: false });
 
-    // Toolbar Zoom Buttons
-    document.getElementById('zoom-in-btn').addEventListener('click', () => zoom(0.25));
-    document.getElementById('zoom-out-btn').addEventListener('click', () => zoom(-0.25));
+    // --- Touch Pan & Pinch-to-Zoom for Mobile Devices ---
+    viewport.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        isDragging = true;
+        startX = e.touches[0].clientX - pointX;
+        startY = e.touches[0].clientY - pointY;
+      } else if (e.touches.length === 2) {
+        isDragging = false;
+        touchStartDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        initialScale = scale;
+      }
+    }, { passive: true });
+
+    viewport.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1 && isDragging) {
+        pointX = e.touches[0].clientX - startX;
+        pointY = e.touches[0].clientY - startY;
+        updateTransform();
+      } else if (e.touches.length === 2 && touchStartDist > 0) {
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const factor = dist / touchStartDist;
+        scale = Math.min(Math.max(0.25, initialScale * factor), 4.0);
+        updateTransform();
+      }
+    }, { passive: true });
+
+    viewport.addEventListener('touchend', () => {
+      isDragging = false;
+      touchStartDist = 0;
+    });
+
+    // Toolbar Buttons
+    document.getElementById('zoom-in-btn').addEventListener('click', () => zoom(0.2));
+    document.getElementById('zoom-out-btn').addEventListener('click', () => zoom(-0.2));
     document.getElementById('zoom-reset-btn').addEventListener('click', resetView);
 
-    // Fullscreen Toggle
-    document.getElementById('toggle-fs-btn').addEventListener('click', () => {
-      document.body.classList.toggle('fullscreen');
-      const isFs = document.body.classList.contains('fullscreen');
-      document.getElementById('toggle-fs-btn').textContent = isFs ? '🗗 Collapse' : '⛶ Expand';
-    });
+    // Mobile View Switcher Tabs
+    const tabCanvasBtn = document.getElementById('tab-canvas-btn');
+    const tabEditorBtn = document.getElementById('tab-editor-btn');
+    const editorPanel  = document.getElementById('editor-panel');
+    const diagramPanel = document.getElementById('diagram-panel');
+
+    if (tabCanvasBtn && tabEditorBtn) {
+      tabCanvasBtn.addEventListener('click', () => {
+        tabCanvasBtn.classList.add('active');
+        tabEditorBtn.classList.remove('active');
+        diagramPanel.classList.remove('mobile-hide');
+        editorPanel.classList.add('mobile-hide');
+      });
+
+      tabEditorBtn.addEventListener('click', () => {
+        tabEditorBtn.classList.add('active');
+        tabCanvasBtn.classList.remove('active');
+        editorPanel.classList.remove('mobile-hide');
+        diagramPanel.classList.add('mobile-hide');
+      });
+    }
 
     async function renderDiagram() {
       const code = codeInput.value.trim();
@@ -526,10 +603,9 @@
 
     document.getElementById('copy-btn').addEventListener('click', () => {
       navigator.clipboard.writeText(codeInput.value);
-      alert('Mermaid workflow code copied to clipboard!');
+      alert('Mermaid code copied to clipboard!');
     });
 
-    // Initial render
     window.addEventListener('DOMContentLoaded', renderDiagram);
   </script>
 
