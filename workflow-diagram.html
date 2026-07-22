@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PSYCHE AI — Architecture & Workflow Diagram Generator</title>
-  <!-- Google Fonts, Mermaid JS, & SVG Pan Zoom -->
+  <!-- Google Fonts & Mermaid JS -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -214,13 +214,63 @@
       transform-origin: center center;
       transition: transform 0.1s ease-out;
       display: inline-block;
-      padding: 40px;
+      padding: 60px;
     }
 
+    /* Node & Text Scaling / Text Wrapping Styles */
     #diagram-target svg {
       max-width: none !important;
       height: auto !important;
-      min-width: 800px;
+      min-width: 950px;
+    }
+
+    /* Make nodes larger and text wrapped */
+    #diagram-target .node rect,
+    #diagram-target .node circle,
+    #diagram-target .node polygon,
+    #diagram-target .node path {
+      stroke-width: 2.5px !important;
+      rx: 12px !important;
+      ry: 12px !important;
+    }
+
+    #diagram-target .node .label {
+      font-size: 15px !important;
+      font-weight: 600 !important;
+      line-height: 1.45 !important;
+      text-align: center !important;
+      padding: 12px 18px !important;
+    }
+
+    #diagram-target foreignObject {
+      overflow: visible !important;
+    }
+
+    #diagram-target foreignObject div {
+      white-space: normal !important;
+      word-wrap: break-word !important;
+      text-align: center !important;
+      font-size: 15px !important;
+      font-weight: 600 !important;
+      line-height: 1.4 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 8px 14px !important;
+    }
+
+    .cluster label {
+      font-size: 16px !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.5px !important;
+    }
+
+    .edgeLabel {
+      background-color: rgba(10, 25, 47, 0.9) !important;
+      padding: 4px 8px !important;
+      border-radius: 6px !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
     }
 
     .error-toast {
@@ -279,7 +329,7 @@
         </div>
         <div class="zoom-toolbar">
           <button class="btn" id="zoom-out-btn" title="Zoom Out (Scroll Down)">🔍 -</button>
-          <span class="zoom-badge" id="zoom-val">100%</span>
+          <span class="zoom-badge" id="zoom-val">120%</span>
           <button class="btn" id="zoom-in-btn" title="Zoom In (Scroll Up)">🔍 +</button>
           <button class="btn" id="zoom-reset-btn" title="Reset View">🔄 Reset</button>
           <button class="btn" id="toggle-fs-btn" title="Toggle Fullscreen Canvas">⛶ Expand</button>
@@ -296,64 +346,72 @@
 
   <script>
     const DEFAULT_WORKFLOW = `flowchart TD
-    %% PSYCHE AI System Architecture & Workflow Diagram
+    %% PSYCHE AI System Architecture & Workflow Diagram (Wrapped Text & Large Auto-Sized Shapes)
 
     subgraph USER_LAYER ["👤 User & Authentication Layer"]
-        A["Student Login / Auth"] --> B{"Assessment Choice"}
-        B -- Start New --> C["PSS-10 & Workload Questionnaire"]
-        B -- Open Chat --> D["Interactive AI Chat View"]
+        A["Student Login<br/>& Session Auth"] --> B{"Choose Action"}
+        B -- Start New --> C["PSS-10 Stress &<br/>Workload Questionnaire"]
+        B -- Open Chat --> D["Interactive AI<br/>Chat Companion"]
     end
 
     subgraph ASSESSMENT_ENGINE ["📊 Stress Score & Classifier"]
-        C --> E["Compute PSS Score (0–40)"]
-        E --> F{"Classify Severity Level"}
-        F -- "0–13" --> G1["Low Stress"]
-        F -- "14–20" --> G2["Moderate Stress"]
-        F -- "21–26" --> G3["High Stress"]
-        F -- "27–40" --> G4["Severe Stress"]
+        C --> E["Calculate Total PSS Score<br/>(Range: 0 – 40)"]
+        E --> F{"Classify Stress<br/>Severity Level"}
+        F -- "0–13" --> G1["Low Stress<br/>Level"]
+        F -- "14–20" --> G2["Moderate Stress<br/>Level"]
+        F -- "21–26" --> G3["High Stress<br/>Level"]
+        F -- "27–40" --> G4["Severe Stress<br/>Level"]
     end
 
     subgraph ESCALATION ["🚨 Guidance Counselor Alert"]
-        G4 --> H["Trigger Urgent Alert System"]
-        H --> I["Update Supabase assessments table"]
-        I --> J["Counselor Dashboard Flag"]
+        G4 --> H["Trigger Urgent<br/>Counselor Notification"]
+        H --> I["Update Supabase<br/>assessments table"]
+        I --> J["Flag Student Profile<br/>on Counselor Dashboard"]
     end
 
     subgraph RECS_GEN ["💡 AI Recommendation Engine"]
-        E --> K["Format Prompt (Score + Workload JSON)"]
-        K --> L["Groq API (Llama-3.3-70b)"]
-        L --> M["Parse JSON Array"]
-        M --> N["Display Personalized Action Cards"]
+        E --> K["Construct System Prompt<br/>(PSS Score + Workload Data)"]
+        K --> L["Groq API Request<br/>(Llama-3.3-70b Engine)"]
+        L --> M["Parse Structured<br/>JSON Array Output"]
+        M --> N["Display 3 Personalized<br/>Action & Wellness Cards"]
     end
 
     subgraph CHAT_ENGINE ["💬 Groq Chat & Emotion Analysis"]
-        D --> O["Load Session History (localStorage/Supabase)"]
-        O --> P["User Message (Text / STT Mic Input)"]
-        P --> Q["Real-Time Emotion Classifier"]
-        Q --> R["Update UI Emotion Badge"]
-        P --> S["Inject Context (Name, PSS Score, Grade)"]
-        S --> T["Groq API (Conversational Assistant)"]
+        D --> O["Load Session History<br/>(localStorage / Supabase)"]
+        O --> P["User Message Input<br/>(Text or Web Speech STT)"]
+        P --> Q["Real-Time Keyword &<br/>Emotion Sentiment Classifier"]
+        Q --> R["Update Dynamic UI<br/>Emotion Status Badge"]
+        P --> S["Inject System Context<br/>(Name, Grade, PSS Score)"]
+        S --> T["Groq API Call<br/>(LLM Conversational Assistant)"]
         T --> U{"Check API Status"}
-        U -- "HTTP 429" --> V["Start 60s Rate-Limit Countdown"]
-        U -- "Success" --> W["Append AI Response & Auto-TTS"]
-        W --> X["Save Message to Session History"]
+        U -- "HTTP 429" --> V["Start 60s Visible<br/>Rate-Limit Countdown"]
+        U -- "Success" --> W["Append AI Reply &<br/>Trigger Auto-TTS Speech"]
+        W --> X["Save Message Pair<br/>to Active Session History"]
     end
 
-    classDef primary fill:#112240,stroke:#00D4FF,stroke-width:2px,color:#fff;
-    classDef warning fill:#2A1B0E,stroke:#F59E0B,stroke-width:2px,color:#fff;
-    classDef danger fill:#2D1517,stroke:#EF4444,stroke-width:2px,color:#fff;
-    classDef success fill:#0D2818,stroke:#10B981,stroke-width:2px,color:#fff;
+    classDef primary fill:#112240,stroke:#00D4FF,stroke-width:2.5px,color:#fff;
+    classDef warning fill:#2A1B0E,stroke:#F59E0B,stroke-width:2.5px,color:#fff;
+    classDef danger fill:#2D1517,stroke:#EF4444,stroke-width:2.5px,color:#fff;
+    classDef success fill:#0D2818,stroke:#10B981,stroke-width:2.5px,color:#fff;
 
     class USER_LAYER,CHAT_ENGINE primary;
     class G1,G2 success;
     class G3 warning;
     class G4,H,I,J danger;`;
 
-    // Initialize Mermaid
+    // Initialize Mermaid with htmlLabels & node padding configuration
     mermaid.initialize({
       startOnLoad: false,
       theme: 'dark',
       securityLevel: 'loose',
+      flowchart: {
+        htmlLabels: true,
+        useMaxWidth: false,
+        nodeSpacing: 55,
+        rankSpacing: 65,
+        padding: 24,
+        curve: 'basis'
+      },
       themeVariables: {
         darkMode: true,
         background: 'transparent',
@@ -361,7 +419,8 @@
         primaryBorderColor: '#00D4FF',
         primaryTextColor: '#E6F1FF',
         lineColor: '#64FFDA',
-        fontFamily: 'Inter, sans-serif'
+        fontFamily: 'Inter, sans-serif',
+        fontSize: '15px'
       }
     });
 
@@ -375,7 +434,7 @@
     codeInput.value = DEFAULT_WORKFLOW;
 
     // Pan & Zoom State
-    let scale = 1.2;
+    let scale = 1.25;
     let pointX = 0;
     let pointY = 0;
     let startX = 0;
@@ -394,7 +453,7 @@
     }
 
     function resetView() {
-      scale = 1.2;
+      scale = 1.25;
       pointX = 0;
       pointY = 0;
       updateTransform();
