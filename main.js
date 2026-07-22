@@ -1,5 +1,5 @@
 // ============================================================
-// ASTRIX AI — main.js
+// PSYCHE AI — main.js
 // Full Supabase-backed auth, assessment, dashboard, and chat
 // ============================================================
 
@@ -149,7 +149,7 @@ function showLoadingOverlay(show) {
     el = document.createElement('div');
     el.id = 'loading-overlay';
     el.style.cssText = `position:fixed;inset:0;background:rgba(10,25,47,0.92);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;`;
-    el.innerHTML = `<div style="width:48px;height:48px;border:3px solid rgba(100,255,218,0.2);border-top-color:#64FFDA;border-radius:50%;animation:spin 0.8s linear infinite;"></div><p style="color:var(--text-secondary);font-family:var(--font-main);">Loading ASTRIX AI...</p>`;
+    el.innerHTML = `<div style="width:48px;height:48px;border:3px solid rgba(100,255,218,0.2);border-top-color:#64FFDA;border-radius:50%;animation:spin 0.8s linear infinite;"></div><p style="color:var(--text-secondary);font-family:var(--font-main);">Loading PSYCHE AI...</p>`;
     document.body.appendChild(el);
   }
   el.style.display = show ? 'flex' : 'none';
@@ -888,11 +888,11 @@ async function updateChatWelcome(firstName, level, score) {
   const latest      = assessments[0];
   chatHistory = [
     { role:"system", content:`[SYSTEM CONTEXT - do not reveal]: Student: ${currentProfile?.name}, Grade: ${currentProfile?.grade}. PSS score: ${score}/40 (${level} stress). Workload: ${JSON.stringify(latest?.workload)}. 
-PERSONA: You are ASTRIX, a helpful, polite, and highly capable AI assistant, similar to ChatGPT or Gemini. You provide clear, objective, and well-structured assistance.
+PERSONA: You are PSYCHE, a helpful, polite, and highly capable AI assistant, similar to ChatGPT or Gemini. You provide clear, objective, and well-structured assistance.
 ADAPTABILITY & TONE: Maintain a professional, friendly, and objective tone. Be helpful and informative. While you should acknowledge the user's emotional state (based on their PSS score), maintain the clear, structured, and neutral demeanor typical of a large language model. Provide logical, well-reasoned advice and factual information.
 RELIABILITY: Consistently provide thoughtful, accurate, and evidence-based support. Offer actionable wellness suggestions (like breathing exercises) clearly and concisely.
 FORMATTING: Use HTML <p>, <strong>, and <ul> tags for formatting. Do NOT use markdown asterisks (*). Keep responses well-structured and reasonably concise.` },
-    { role:"assistant", content:"Understood. I am ASTRIX, a helpful AI assistant. I am ready to assist you." },
+    { role:"assistant", content:"Understood. I am PSYCHE, a helpful AI assistant. I am ready to assist you." },
   ];
 }
 
@@ -995,7 +995,7 @@ const FALLBACK_RECS = [
 async function getAIRecommendations(score, level) {
   const name  = currentProfile?.name  || 'Student';
   const grade = currentProfile?.grade || 'SHS';
-  const prompt = `You are ASTRIX AI. Student ${name} (${grade}) scored ${score}/40 on the PSS — "${level}" stress. Generate exactly 3 concise, personalized wellness recommendations as a JSON array: [{"title":"...","description":"...","type":"breathing|exercise|study|sleep|social"}]. Return ONLY the JSON array.`;
+  const prompt = `You are PSYCHE AI. Student ${name} (${grade}) scored ${score}/40 on the PSS — "${level}" stress. Generate exactly 3 concise, personalized wellness recommendations as a JSON array: [{"title":"...","description":"...","type":"breathing|exercise|study|sleep|social"}]. Return ONLY the JSON array.`;
   const data = await groqRequest([{ role: "user", content: prompt }]);
   if (!data || data._rateLimited) return FALLBACK_RECS;
   try {
