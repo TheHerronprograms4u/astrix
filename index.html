@@ -96,6 +96,10 @@
       <div class="modal-box modal-wide glass-panel">
         <div class="assessment-header">
           <div class="modal-logo"><div class="logo-icon-sm"></div><span>PSYCHE<span class="ai-text">AI</span></span></div>
+          <div class="assessment-tab-toggle" id="assess-tab-toggle">
+            <button class="assess-type-btn active" id="assess-btn-pss" data-type="pss">PSS-10 Stress</button>
+            <button class="assess-type-btn" id="assess-btn-heeadsss" data-type="heeadsss">HEEADSSS Screening</button>
+          </div>
           <div class="progress-bar-wrap">
             <div class="progress-bar-track">
               <div class="progress-bar-fill" id="assess-progress"></div>
@@ -165,6 +169,7 @@
       <div class="nav-links" id="landing-nav">
         <a href="#features">Features</a>
         <a href="#how-it-works">How It Works</a>
+        <a href="#heeadsss">HEEADSSS</a>
         <a href="#chatbot">AI Chat</a>
       </div>
       <!-- Dashboard Nav -->
@@ -302,6 +307,139 @@
           </div>
           <div style="text-align:center;margin-top:60px;" class="reveal delay-2">
             <button class="btn btn-primary glow-effect" id="hiw-start-btn" style="font-size:1.1rem;padding:16px 40px;">Start Your Wellness Journey</button>
+          </div>
+        </section>
+
+        <!-- HEEADSSS Framework Section -->
+        <section class="heeadsss-section" id="heeadsss">
+          <div class="section-header reveal">
+            <div class="badge fade-in-up" style="margin-bottom: 12px; display: inline-block;">🩺 Adolescent Psychosocial Standard</div>
+            <h2 class="gradient-text">The HEEADSSS Framework</h2>
+            <p>A comprehensive clinical screening tool standard evaluating key psychosocial risk areas in adolescent health & well-being.</p>
+          </div>
+          <div class="heeadsss-grid reveal delay-1">
+            <!-- Card H -->
+            <div class="heeadsss-card glass-panel">
+              <div>
+                <div class="heeadsss-card-header">
+                  <div class="heeadsss-letter h-color">H</div>
+                  <div>
+                    <h3>Home Environment</h3>
+                    <span class="heeadsss-tag">Family & Living</span>
+                  </div>
+                </div>
+                <p>Assesses family dynamics, housing stability, safety, and communication with parents or guardians.</p>
+              </div>
+              <div class="heeadsss-focus">Focus: Conflict resolution, family support, living arrangements</div>
+            </div>
+
+            <!-- Card E1 -->
+            <div class="heeadsss-card glass-panel">
+              <div>
+                <div class="heeadsss-card-header">
+                  <div class="heeadsss-letter e-color">E</div>
+                  <div>
+                    <h3>Education & School</h3>
+                    <span class="heeadsss-tag">Academic Pressure</span>
+                  </div>
+                </div>
+                <p>Evaluates academic performance, exam stress, attendance, school environment, and future career goals.</p>
+              </div>
+              <div class="heeadsss-focus">Focus: Academic strain, career anxiety, attendance</div>
+            </div>
+
+            <!-- Card E2 -->
+            <div class="heeadsss-card glass-panel">
+              <div>
+                <div class="heeadsss-card-header">
+                  <div class="heeadsss-letter e2-color">E</div>
+                  <div>
+                    <h3>Eating & Nutrition</h3>
+                    <span class="heeadsss-tag">Body Image & Habits</span>
+                  </div>
+                </div>
+                <p>Examines dietary habits, body image perception, weight concerns, and overall nutritional well-being.</p>
+              </div>
+              <div class="heeadsss-focus">Focus: Body positivity, meal regularity, healthy habits</div>
+            </div>
+
+            <!-- Card A -->
+            <div class="heeadsss-card glass-panel">
+              <div>
+                <div class="heeadsss-card-header">
+                  <div class="heeadsss-letter a-color">A</div>
+                  <div>
+                    <h3>Activities & Peers</h3>
+                    <span class="heeadsss-tag">Social Life & Hobbies</span>
+                  </div>
+                </div>
+                <p>Explores friend groups, screen time, sports, hobbies, and social connectedness with peers.</p>
+              </div>
+              <div class="heeadsss-focus">Focus: Friendship quality, screen balance, hobbies</div>
+            </div>
+
+            <!-- Card D -->
+            <div class="heeadsss-card glass-panel">
+              <div>
+                <div class="heeadsss-card-header">
+                  <div class="heeadsss-letter d-color">D</div>
+                  <div>
+                    <h3>Drugs & Alcohol</h3>
+                    <span class="heeadsss-tag">Substance Exposure</span>
+                  </div>
+                </div>
+                <p>Screens for exposure to tobacco, vaping, alcohol, or substance use among peers and self.</p>
+              </div>
+              <div class="heeadsss-focus">Focus: Peer influence awareness, healthy choices</div>
+            </div>
+
+            <!-- Card S1 -->
+            <div class="heeadsss-card glass-panel">
+              <div>
+                <div class="heeadsss-card-header">
+                  <div class="heeadsss-letter s1-color">S</div>
+                  <div>
+                    <h3>Sexuality & Identity</h3>
+                    <span class="heeadsss-tag">Personal Identity</span>
+                  </div>
+                </div>
+                <p>Addresses sexual health, relationship dynamics, self-identity, and gender or orientation comfort.</p>
+              </div>
+              <div class="heeadsss-focus">Focus: Relationship safety, identity support, boundaries</div>
+            </div>
+
+            <!-- Card S2 -->
+            <div class="heeadsss-card glass-panel">
+              <div>
+                <div class="heeadsss-card-header">
+                  <div class="heeadsss-letter s2-color">S</div>
+                  <div>
+                    <h3>Suicide & Mood</h3>
+                    <span class="heeadsss-tag">Emotional Regulation</span>
+                  </div>
+                </div>
+                <p>Identifies depression symptoms, anxiety, self-harm risks, hopelessness, and emotional crises.</p>
+              </div>
+              <div class="heeadsss-focus">Focus: Mood tracking, crisis prevention, mental health</div>
+            </div>
+
+            <!-- Card S3 -->
+            <div class="heeadsss-card glass-panel">
+              <div>
+                <div class="heeadsss-card-header">
+                  <div class="heeadsss-letter s3-color">S</div>
+                  <div>
+                    <h3>Safety & Bullying</h3>
+                    <span class="heeadsss-tag">Security & Protection</span>
+                  </div>
+                </div>
+                <p>Assesses online cyberbullying, physical safety at school/home, and exposure to violence.</p>
+              </div>
+              <div class="heeadsss-focus">Focus: Cyber safety, anti-bullying, safe environments</div>
+            </div>
+          </div>
+          <div class="heeadsss-cta reveal delay-2">
+            <button class="btn btn-primary glow-effect" id="heeadsss-start-btn" style="font-size:1.05rem;padding:14px 32px;">Take HEEADSSS Screening Assessment</button>
           </div>
         </section>
 
@@ -443,6 +581,20 @@
               </div>
             </div>
 
+            <!-- HEEADSSS Psychosocial Overview Widget -->
+            <div class="widget glass-panel col-span-3 reveal">
+              <div class="widget-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <div>
+                  <h3>HEEADSSS Psychosocial Profile</h3>
+                  <p style="color:var(--text-secondary);font-size:0.85rem;">8-Domain Adolescent Wellness & Safety Breakdown</p>
+                </div>
+                <button class="btn btn-glass btn-small" id="widget-heeadsss-btn">Screening Test</button>
+              </div>
+              <div class="heeadsss-domains-list" id="heeadsss-dashboard-grid">
+                <!-- Populated dynamically by JS -->
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -493,6 +645,18 @@
                   <span class="badge warning-badge" id="chat-stress-badge">Stress: –</span>
                 </div>
               </div>
+
+              <!-- HEEADSSS Quick Chips -->
+              <div class="heeadsss-chat-chips" id="heeadsss-chips">
+                <span class="chip-label">HEEADSSS Quick Topics:</span>
+                <button class="chat-chip" data-prompt="I need guidance dealing with family conflict and home stress.">🏡 Home & Family</button>
+                <button class="chat-chip" data-prompt="How can I manage exam anxiety and academic pressure?">📚 School & Exams</button>
+                <button class="chat-chip" data-prompt="Can you give me tips for healthy eating and building body confidence?">🍏 Body Image & Eating</button>
+                <button class="chat-chip" data-prompt="How do I handle peer pressure and make positive friends?">👥 Peer Relationships</button>
+                <button class="chat-chip" data-prompt="What strategies can help when I feel overwhelmed, sad, or hopeless?">🌧️ Mood & Depression</button>
+                <button class="chat-chip" data-prompt="How do I deal with cyberbullying and stay safe online and at school?">🛡️ Safety & Cyberbullying</button>
+              </div>
+
               <div class="chatbot-messages" id="chat-messages">
                 <div class="message ai-message">
                   <div class="ai-avatar-small"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="margin:10px"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg></div>

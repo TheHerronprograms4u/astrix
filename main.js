@@ -31,11 +31,97 @@ const WORKLOAD_QUESTIONS = [
 const TOTAL_STEPS = ASSESSMENT_QUESTIONS.length + WORKLOAD_QUESTIONS.length;
 const WORKLOAD_LABELS = ["Very Low","Low","Moderate","High","Very High"];
 
+// ── HEEADSSS Psychosocial Questions ──────────────────────────
+const HEEADSSS_QUESTIONS = [
+  {
+    domain: 'home',
+    title: 'Home Environment',
+    badge: 'H',
+    badgeClass: 'h-color',
+    q: 'How supported, safe, and comfortable do you feel in your home environment with family or guardians?',
+    context: 'Evaluates family dynamics, housing stability, and communication at home.',
+    options: ['Very Safe & Supported', 'Mostly Comfortable', 'Occasional Tension', 'Frequent Conflict', 'Unsafe / Severe Conflict'],
+    scores: [0, 1, 2, 3, 4]
+  },
+  {
+    domain: 'education',
+    title: 'Education & School',
+    badge: 'E',
+    badgeClass: 'e-color',
+    q: 'How are you coping with your school requirements, grades, and academic expectations?',
+    context: 'Measures academic strain, career goals, and school environment.',
+    options: ['Managing Very Well', 'Doing Fine', 'Moderate Academic Stress', 'Heavy Pressure', 'Overwhelmed / Failing'],
+    scores: [0, 1, 2, 3, 4]
+  },
+  {
+    domain: 'eating',
+    title: 'Eating & Body Image',
+    badge: 'E',
+    badgeClass: 'e2-color',
+    q: 'How confident and healthy do you feel regarding your eating habits, nutrition, and body image?',
+    context: 'Assesses dietary regularity, body positivity, and meal habits.',
+    options: ['Very Healthy & Confident', 'Generally Good', 'Minor Body Image Concerns', 'Irregular Eating / Distressed', 'Severe Eating Issues'],
+    scores: [0, 1, 2, 3, 4]
+  },
+  {
+    domain: 'activities',
+    title: 'Activities & Peers',
+    badge: 'A',
+    badgeClass: 'a-color',
+    q: 'How balanced is your social life, friendships, sports, hobbies, and screen time?',
+    context: 'Explores peer support, screen balance, and social connectedness.',
+    options: ['Great Balance & Strong Friends', 'Good Friends & Active', 'Sometimes Isolated', 'High Screen / Low Connection', 'Lonely / Excluded'],
+    scores: [0, 1, 2, 3, 4]
+  },
+  {
+    domain: 'drugs',
+    title: 'Drugs & Alcohol Exposure',
+    badge: 'D',
+    badgeClass: 'd-color',
+    q: 'How often do you or your close peer group encounter vaping, alcohol, or substance pressure?',
+    context: 'Screens exposure to substance use and peer influences.',
+    options: ['Never / No Exposure', 'Rare Exposure', 'Occasional Peer Vaping/Alcohol', 'Frequent Peer Pressure', 'Regular Personal/Peer Use'],
+    scores: [0, 1, 2, 3, 4]
+  },
+  {
+    domain: 'sexuality',
+    title: 'Sexuality & Identity',
+    badge: 'S',
+    badgeClass: 's1-color',
+    q: 'How comfortable and supported do you feel regarding your identity, relationships, and self-expression?',
+    context: 'Addresses relationship safety, personal boundaries, and identity support.',
+    options: ['Completely Secure & Supported', 'Mostly Comfortable', 'Some Identity Questions', 'Relationship Strain', 'Distressed / Unsupported'],
+    scores: [0, 1, 2, 3, 4]
+  },
+  {
+    domain: 'suicide',
+    title: 'Suicide & Mood',
+    badge: 'S',
+    badgeClass: 's2-color',
+    q: 'How often in the past month have you felt persistent sadness, anxiety, hopelessness, or self-doubt?',
+    context: 'Identifies emotional distress, mood regulation, and mental health crisis risks.',
+    options: ['Never / High Morale', 'Rarely / Mild Blues', 'Sometimes Sad or Anxious', 'Frequently Hopeless', 'Severe Distress / Self-Harm Thoughts'],
+    scores: [0, 1, 2, 3, 4]
+  },
+  {
+    domain: 'safety',
+    title: 'Safety & Cyberbullying',
+    badge: 'S',
+    badgeClass: 's3-color',
+    q: 'How safe do you feel from bullying, cyberbullying, physical threats, or online harassment?',
+    context: 'Assesses physical, digital, and community safety.',
+    options: ['Completely Safe Everywhere', 'Generally Safe', 'Minor Online Harassment', 'Frequent Bullying / Cyberbullying', 'Unsafe Environment'],
+    scores: [0, 1, 2, 3, 4]
+  }
+];
+
 // ── App State ────────────────────────────────────────────────
 let currentUser    = null;   // Supabase auth user
 let currentProfile = null;   // profiles table row
+let activeAssessmentType = 'pss'; // 'pss' or 'heeadsss'
 let assessmentAnswers  = [];
 let workloadAnswers    = {};
+let heeadsssAnswers    = [];
 let assessmentStep     = 0;
 let selectedMood       = null;
 let breathInterval     = null;
@@ -327,7 +413,14 @@ function initAuthButtons() {
   const openRegister = () => { showAuthTab('register'); openModal('auth-overlay'); };
 
   document.getElementById('signin-btn').addEventListener('click', openLogin);
-  ['get-started-nav','hero-get-started','hero-assessment','hiw-start-btn','chat-signin-btn'].forEach(id => document.getElementById(id).addEventListener('click', openRegister));
+  ['get-started-nav','hero-get-started','hero-assessment','hiw-start-btn','chat-signin-btn'].forEach(id => document.getElementById(id)?.addEventListener('click', openRegister));
+  document.getElementById('heeadsss-start-btn')?.addEventListener('click', () => {
+    if (currentUser) {
+      startAssessment('heeadsss');
+    } else {
+      openRegister();
+    }
+  });
   document.getElementById('close-auth').addEventListener('click', () => closeModal('auth-overlay'));
   document.getElementById('auth-overlay').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal('auth-overlay'); });
   document.getElementById('go-register').addEventListener('click', (e) => { e.preventDefault(); showAuthTab('register'); });
@@ -409,16 +502,65 @@ function initAuthForms() {
 }
 
 // ── ASSESSMENT ───────────────────────────────────────────────
-function startAssessment() {
+function startAssessment(type = 'pss') {
+  activeAssessmentType = type;
   assessmentAnswers = new Array(ASSESSMENT_QUESTIONS.length).fill(null);
   workloadAnswers   = {};
+  heeadsssAnswers   = new Array(HEEADSSS_QUESTIONS.length).fill(null);
   assessmentStep    = 0;
+
+  const pssBtn = document.getElementById('assess-btn-pss');
+  const heeadsssBtn = document.getElementById('assess-btn-heeadsss');
+  if (pssBtn && heeadsssBtn) {
+    if (type === 'pss') {
+      pssBtn.classList.add('active');
+      heeadsssBtn.classList.remove('active');
+    } else {
+      heeadsssBtn.classList.add('active');
+      pssBtn.classList.remove('active');
+    }
+  }
+
   openModal('assessment-overlay');
   renderAssessmentQuestion();
 }
 
 function renderAssessmentQuestion() {
   const container = document.getElementById('assessment-questions-container');
+
+  if (activeAssessmentType === 'heeadsss') {
+    const totalHeeadsss = HEEADSSS_QUESTIONS.length;
+    const pct = ((assessmentStep + 1) / totalHeeadsss) * 100;
+    document.getElementById('assess-progress').style.width = `${pct}%`;
+    document.getElementById('assess-progress-text').textContent = `${assessmentStep + 1} / ${totalHeeadsss}`;
+    document.getElementById('assess-prev').disabled = assessmentStep === 0;
+
+    const q = HEEADSSS_QUESTIONS[assessmentStep];
+    const selected = heeadsssAnswers[assessmentStep];
+
+    container.innerHTML = `
+      <div class="question-block">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div class="domain-mini-badge ${q.badgeClass}" style="width:34px;height:34px;font-size:1.1rem;">${q.badge}</div>
+          <h3 style="margin:0;font-size:1.25rem;">HEEADSSS: ${q.title} (${assessmentStep + 1} of ${totalHeeadsss})</h3>
+        </div>
+        <p class="q-context">${q.context}</p>
+        <p style="font-size:1.15rem;font-weight:600;color:#E6F1FF;margin-bottom:28px;">${q.q}</p>
+        <div class="options-grid">
+          ${q.options.map((opt, i) => `<button class="option-btn ${selected === i ? 'selected' : ''}" data-index="${i}">${opt}</button>`).join('')}
+        </div>
+      </div>`;
+
+    container.querySelectorAll('.option-btn').forEach(btn => btn.addEventListener('click', () => {
+      heeadsssAnswers[assessmentStep] = parseInt(btn.dataset.index);
+      container.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    }));
+
+    document.getElementById('assess-next').textContent = assessmentStep === totalHeeadsss - 1 ? '✨ Complete HEEADSSS Profile' : 'Next →';
+    return;
+  }
+
   const pct = (assessmentStep / TOTAL_STEPS) * 100;
   document.getElementById('assess-progress').style.width = `${pct}%`;
   document.getElementById('assess-progress-text').textContent = `${assessmentStep + 1} / ${TOTAL_STEPS}`;
@@ -465,7 +607,22 @@ function renderAssessmentQuestion() {
 }
 
 function initAssessmentModal() {
+  const pssBtn = document.getElementById('assess-btn-pss');
+  const heeadsssBtn = document.getElementById('assess-btn-heeadsss');
+  pssBtn?.addEventListener('click', () => { if (activeAssessmentType !== 'pss') startAssessment('pss'); });
+  heeadsssBtn?.addEventListener('click', () => { if (activeAssessmentType !== 'heeadsss') startAssessment('heeadsss'); });
+
   document.getElementById('assess-next').addEventListener('click', async () => {
+    if (activeAssessmentType === 'heeadsss') {
+      if (heeadsssAnswers[assessmentStep] === null) { alert('Please select an answer to continue.'); return; }
+      if (assessmentStep < HEEADSSS_QUESTIONS.length - 1) {
+        assessmentStep++; renderAssessmentQuestion();
+      } else {
+        await finishHeeadsssAssessment();
+      }
+      return;
+    }
+
     if (assessmentStep < ASSESSMENT_QUESTIONS.length) {
       if (assessmentAnswers[assessmentStep] === null) { alert('Please select an answer to continue.'); return; }
     } else {
@@ -516,6 +673,62 @@ async function finishAssessment() {
   // Small gap so the recommendations call above doesn't rate-limit the chat-welcome call
   await new Promise(r => setTimeout(r, 2000));
   updateChatWelcome(currentProfile?.name?.split(' ')[0] || 'there', cl.level, pssScore);
+}
+
+async function finishHeeadsssAssessment() {
+  const btn = document.getElementById('assess-next');
+  btn.textContent = '⏳ Saving HEEADSSS Profile...'; btn.disabled = true;
+
+  if (!currentUser) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) currentUser = session.user;
+  }
+
+  const results = HEEADSSS_QUESTIONS.map((q, idx) => {
+    const ansIdx = heeadsssAnswers[idx] ?? 0;
+    const score = q.scores[ansIdx];
+    const pct = Math.max(12, Math.round(100 - (score * 22.5)));
+    let statusText = 'Optimal';
+    let statusColor = '#10B981';
+    if (score === 1) { statusText = 'Good'; statusColor = '#34D399'; }
+    else if (score === 2) { statusText = 'Moderate Stress'; statusColor = '#F59E0B'; }
+    else if (score === 3) { statusText = 'High Risk'; statusColor = '#F97316'; }
+    else if (score >= 4) { statusText = 'Needs Support'; statusColor = '#EF4444'; }
+
+    return {
+      domain: q.domain,
+      title: q.title,
+      badge: q.badge,
+      badgeClass: q.badgeClass,
+      score: score,
+      pct: pct,
+      statusText: statusText,
+      statusColor: statusColor,
+      selectedOption: q.options[ansIdx]
+    };
+  });
+
+  const payload = {
+    updatedAt: new Date().toISOString(),
+    results: results
+  };
+
+  if (currentUser) {
+    localStorage.setItem(`psyche_heeadsss_${currentUser.id}`, JSON.stringify(payload));
+  }
+
+  btn.textContent = '✨ Complete HEEADSSS Profile'; btn.disabled = false;
+  closeModal('assessment-overlay');
+
+  renderHeeadsssWidget(payload.results);
+
+  const highRisk = results.filter(r => r.score >= 3);
+  if (highRisk.length > 0) {
+    const names = highRisk.map(r => r.title).join(', ');
+    setTimeout(() => {
+      alert(`HEEADSSS Screening Complete: Domain attention flagged for (${names}). PSYCHE AI companion is ready to support you with tailored guidance.`);
+    }, 400);
+  }
 }
 
 // ── RENDER DASHBOARD ─────────────────────────────────────────
@@ -578,6 +791,69 @@ async function renderDashboard() {
     else if (diff > 0)  { badge.textContent = '↑ Increasing'; badge.style.cssText += 'background:rgba(245,158,11,0.2);color:#FCD34D;border-color:rgba(245,158,11,0.4);'; }
     else                { badge.textContent = '→ Stable'; badge.style.cssText += 'background:rgba(100,255,218,0.1);color:var(--accent-cyan);border-color:rgba(100,255,218,0.3);'; }
   }
+
+  // HEEADSSS Widget
+  renderHeeadsssWidget();
+}
+
+function renderHeeadsssWidget(customResults = null) {
+  const container = document.getElementById('heeadsss-dashboard-grid');
+  if (!container) return;
+
+  let results = customResults;
+  if (!results && currentUser) {
+    const stored = localStorage.getItem(`psyche_heeadsss_${currentUser.id}`);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        results = parsed.results;
+      } catch (e) {
+        console.error('Error parsing HEEADSSS data:', e);
+      }
+    }
+  }
+
+  if (!results || !results.length) {
+    const defaults = HEEADSSS_QUESTIONS.map(q => ({
+      domain: q.domain,
+      title: q.title,
+      badge: q.badge,
+      badgeClass: q.badgeClass,
+      pct: 0,
+      statusText: 'Not Screened Yet',
+      statusColor: 'var(--text-secondary)'
+    }));
+    container.innerHTML = defaults.map(d => `
+      <div class="domain-item-card">
+        <div class="domain-item-header">
+          <div class="domain-item-title">
+            <div class="domain-mini-badge ${d.badgeClass}">${d.badge}</div>
+            <span>${d.title}</span>
+          </div>
+          <span style="font-size:0.78rem;color:${d.statusColor};font-weight:600;">${d.statusText}</span>
+        </div>
+        <div class="domain-progress-bar">
+          <div class="domain-progress-fill" style="width:0%;background:var(--accent-cyan);"></div>
+        </div>
+      </div>
+    `).join('');
+    return;
+  }
+
+  container.innerHTML = results.map(d => `
+    <div class="domain-item-card">
+      <div class="domain-item-header">
+        <div class="domain-item-title">
+          <div class="domain-mini-badge ${d.badgeClass}">${d.badge}</div>
+          <span>${d.title}</span>
+        </div>
+        <span style="font-size:0.78rem;color:${d.statusColor};font-weight:600;">${d.statusText}</span>
+      </div>
+      <div class="domain-progress-bar">
+        <div class="domain-progress-fill" style="width:${d.pct}%;background:${d.statusColor};"></div>
+      </div>
+    </div>
+  `).join('');
 }
 
 function renderWorkload(workload) {
@@ -709,7 +985,10 @@ function initDashboardButtons() {
   if (_dashBtnsInited) return;
   _dashBtnsInited = true;
   ['dashboard-checkin-btn','widget-checkin-btn','daily-checkin-btn'].forEach(id => document.getElementById(id)?.addEventListener('click', () => openModal('checkin-overlay')));
-  document.getElementById('progress-retake-btn')?.addEventListener('click', startAssessment);
+  document.getElementById('progress-retake-btn')?.addEventListener('click', () => startAssessment('pss'));
+  ['widget-heeadsss-btn', 'retake-heeadsss-btn'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', () => startAssessment('heeadsss'));
+  });
 }
 
 // ── BREATHING EXERCISE ───────────────────────────────────────
@@ -1027,6 +1306,17 @@ function initChatbot() {
       sidebar.classList.toggle('hidden-mobile');
     });
   }
+
+  // Bind HEEADSSS Quick Topic Chips
+  document.querySelectorAll('#heeadsss-chips .chat-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const prompt = chip.dataset.prompt;
+      if (prompt && input) {
+        input.value = prompt;
+        sendMessage();
+      }
+    });
+  });
 
   // Load chat sessions from storage
   loadChatSessions();
