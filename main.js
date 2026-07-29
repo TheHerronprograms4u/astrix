@@ -155,6 +155,18 @@ function showFormError(id, msg) { const el = document.getElementById(id); el.tex
 // ── Supabase DB helpers ──────────────────────────────────────
 async function fetchProfile(uid) {
   const { data } = await supabase.from('profiles').select('*').eq('id', uid).maybeSingle();
+  if (!data && currentUser?.id === uid && currentUser?.user_metadata) {
+    const meta = currentUser.user_metadata;
+    if (meta.grade) {
+      return {
+        id: uid,
+        name: meta.real_name || currentUser.email.split('@')[0],
+        real_name: meta.real_name,
+        email: currentUser.email,
+        grade: meta.grade
+      };
+    }
+  }
   return data;
 }
 
@@ -256,8 +268,8 @@ async function showDashboard() {
   hideEl('landing-nav');
   hideEl('nav-guest');    showEl('nav-user');
 
-  const name  = currentProfile?.name  || currentUser.email.split('@')[0];
-  const grade = currentProfile?.grade || '';
+  const name  = currentProfile?.name  || currentUser?.user_metadata?.real_name || currentUser?.email?.split('@')[0];
+  const grade = currentProfile?.grade || currentUser?.user_metadata?.grade || '';
 
   document.getElementById('nav-avatar').textContent    = name.charAt(0).toUpperCase();
   document.getElementById('dropdown-name').textContent  = name;
@@ -544,14 +556,15 @@ function initAuthForms() {
       const { data, error: signUpError } = await supabase.auth.signUp({ 
         email, 
         password: pass,
-        options: { data: { real_name: name } }
+        options: { data: { real_name: name, grade: grade } }
       });
       btn.textContent = 'Create Staff Account ✨'; btn.disabled = false;
 
       if (signUpError) { showFormError('reg-error', signUpError.message); return; }
 
       currentUser = data.user;
-      const { data: profileData } = await supabase.from('profiles').insert({ 
+      
+      const staffPayload = { 
         id: data.user.id, 
         name: nickname, 
         real_name: name,
@@ -559,7 +572,18 @@ function initAuthForms() {
         grade, 
         age,
         parent_consent: true 
-      }).select().single();
+      };
+
+      let profileData = null;
+      const { data: insData, error: profileErr } = await supabase.from('profiles').insert(staffPayload).select().single();
+      if (profileErr) {
+        console.warn('DB staff profile insert notice:', profileErr.message);
+        const fbPayload = { id: data.user.id, name: nickname, real_name: name, email, grade, age };
+        const { data: fbData } = await supabase.from('profiles').insert(fbPayload).select().single();
+        profileData = fbData || { ...staffPayload };
+      } else {
+        profileData = insData || { ...staffPayload };
+      }
       currentProfile = profileData;
 
       closeModal('auth-overlay');
@@ -694,7 +718,7 @@ function initAuthForms() {
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password: pass,
-      options: { data: { real_name: name } }
+      options: { data: { real_name: name, grade: role } }
     });
 
     btn.textContent = '➕ Create Staff Account'; btn.disabled = false;
@@ -705,14 +729,25 @@ function initAuthForms() {
     }
 
     if (data?.user) {
-      await supabase.from('profiles').insert({
+      const staffPayload = {
         id: data.user.id,
         name: nickname,
         real_name: name,
         email: email,
         grade: role,
         parent_consent: true
-      });
+      };
+      const { error: profileErr } = await supabase.from('profiles').insert(staffPayload);
+      if (profileErr) {
+        console.warn('DB staff profile insert notice:', profileErr.message);
+        await supabase.from('profiles').insert({
+          id: data.user.id,
+          name: nickname,
+          real_name: name,
+          email: email,
+          grade: role
+        });
+      }
     }
 
     closeModal('create-staff-overlay');
