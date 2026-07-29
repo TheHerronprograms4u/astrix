@@ -789,10 +789,68 @@ main { max-width: 1280px; margin: 0 auto; padding: 140px 24px 70px; }
 .domain-item-title { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.95rem; color: var(--text-primary); }
 .domain-mini-badge { width: 28px; height: 28px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.82rem; font-weight: 800; color: #0D1614; }
 
-.heeadsss-chat-chips { display: flex; align-items: center; gap: 8px; padding: 12px 18px; background: rgba(13, 22, 20, 0.7); border-bottom: 1px solid rgba(255, 255, 255, 0.08); overflow-x: auto; scrollbar-width: none; }
-.heeadsss-chat-chips::-webkit-scrollbar { display: none; }
-.chat-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(132, 169, 140, 0.25); color: var(--text-primary); padding: 6px 14px; border-radius: 99px; font-size: 0.8rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; }
-.chat-chip:hover { background: rgba(132, 169, 140, 0.2); border-color: var(--accent-sage); color: var(--accent-sage); transform: translateY(-1px); }
+.heeadsss-chat-chips {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: rgba(13, 22, 20, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.heeadsss-chat-chips::-webkit-scrollbar {
+  height: 4px;
+}
+
+.heeadsss-chat-chips::-webkit-scrollbar-track {
+  background: rgba(13, 22, 20, 0.4);
+}
+
+.heeadsss-chat-chips::-webkit-scrollbar-thumb {
+  background: rgba(132, 169, 140, 0.3);
+  border-radius: 99px;
+}
+
+.heeadsss-chat-chips::-webkit-scrollbar-thumb:hover {
+  background: rgba(132, 169, 140, 0.6);
+}
+
+.chip-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.chat-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(132, 169, 140, 0.25);
+  color: var(--text-primary);
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.chat-chip:hover {
+  background: rgba(132, 169, 140, 0.2);
+  border-color: var(--accent-sage);
+  color: var(--accent-sage);
+  transform: translateY(-1px);
+}
 
 /* ===== Footer ===== */
 footer { margin: 100px 0 0; border-radius: 36px 36px 0 0; border-left: none; border-right: none; border-bottom: none; padding: 70px 5% 36px; background: rgba(13, 22, 20, 0.95); }
