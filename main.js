@@ -128,6 +128,7 @@ let breathInterval     = null;
 let chatHistory        = [];
 let chatSessions       = [];
 let currentSessionId   = null;
+let pendingRegistrationData = null; // Stores pending registration payload prior to parent consent
 let _chatbotInited     = false;  // guard: only attach chat listeners once
 let _dashNavInited     = false;  // guard: only attach nav tab listeners once
 let _dashBtnsInited    = false;  // guard: only attach dashboard button listeners once
@@ -262,10 +263,11 @@ async function showDashboard() {
   document.getElementById('dropdown-name').textContent  = name;
   document.getElementById('dropdown-grade').textContent = grade;
 
-  if (grade === 'Guidance Counselor') {
+  if (grade === 'Guidance Counselor' || grade === 'Researcher') {
     hideEl('dashboard-page'); showEl('counselor-dashboard-page');
     hideEl('dashboard-nav');
-    document.getElementById('counselor-greeting').textContent = `Counselor Dashboard - Welcome, ${name.split(' ')[0]}!`;
+    const titleRole = grade === 'Researcher' ? 'Researcher' : 'Guidance Counselor';
+    document.getElementById('counselor-greeting').textContent = `${titleRole} Dashboard - Welcome, ${name.split(' ')[0]}!`;
     showLoadingOverlay(true);
     await renderCounselorDashboard();
     showLoadingOverlay(false);
@@ -294,9 +296,15 @@ async function showDashboard() {
 }
 
 async function fetchAllProfiles() {
-  const { data, error } = await supabase.from('profiles').select('*').neq('grade', 'Guidance Counselor');
+  const { data, error } = await supabase.from('profiles').select('*');
   if (error) console.error('Error fetching profiles:', error);
-  return data || [];
+  return (data || []).filter(p => p.grade !== 'Guidance Counselor' && p.grade !== 'Researcher');
+}
+
+async function fetchAllStaffProfiles() {
+  const { data, error } = await supabase.from('profiles').select('*');
+  if (error) console.error('Error fetching staff profiles:', error);
+  return (data || []).filter(p => p.grade === 'Guidance Counselor' || p.grade === 'Researcher');
 }
 
 async function fetchAllAssessments() {
@@ -342,7 +350,7 @@ async function renderCounselorDashboard() {
   }
 
   if (studentsWithAssessments.length === 0) {
-    allTbody.innerHTML = '<tr><td colspan="6" style="color:var(--text-secondary);text-align:center;">No students found.</td></tr>';
+    allTbody.innerHTML = '<tr><td colspan="7" style="color:var(--text-secondary);text-align:center;">No students found.</td></tr>';
   } else {
     allTbody.innerHTML = studentsWithAssessments.map(s => {
       const p = s.profile;
@@ -355,18 +363,48 @@ async function renderCounselorDashboard() {
         const cl = classifyStress(a.pss_score);
         color = cl.color;
       }
+      const hasConsent = p.parent_consent || p.parent_name;
+      const consentHtml = hasConsent 
+        ? `<span class="badge" style="background:rgba(16,185,129,0.15);color:#10B981;border:1px solid rgba(16,185,129,0.3);">✓ Confirmed</span><div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">${p.parent_name || 'Parent/Guardian'}</div>`
+        : `<span class="badge" style="background:rgba(245,158,11,0.15);color:#F59E0B;border:1px solid rgba(245,158,11,0.3);">Pending</span>`;
+
       return `<tr>
         <td>
           <div style="font-weight:600;color:var(--text-primary);">${p.real_name || p.name}</div>
           <div style="font-size:0.85rem;color:var(--text-secondary);">${p.email || 'No email'}</div>
         </td>
         <td>${p.grade}</td>
+        <td>${consentHtml}</td>
         <td style="font-weight:600;">${scoreStr}</td>
         <td><span class="badge" style="background:${color}22;color:${color};border-color:${color}44;">${levelStr}</span></td>
         <td>${dateStr}</td>
         <td><button class="btn btn-glass btn-small" onclick="alert('Viewing full report for ${p.real_name || p.name}')">View Report</button></td>
       </tr>`;
     }).join('');
+  }
+
+  // Render Counselors & Researchers Directory Table
+  const staffProfiles = await fetchAllStaffProfiles();
+  const staffTbody = document.getElementById('counselor-staff-tbody');
+  if (staffTbody) {
+    if (staffProfiles.length === 0) {
+      staffTbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-secondary);text-align:center;">No counselors or researchers registered yet.</td></tr>';
+    } else {
+      staffTbody.innerHTML = staffProfiles.map(sp => {
+        const isCounselor = sp.grade === 'Guidance Counselor';
+        const roleBadge = isCounselor 
+          ? `<span class="badge" style="background:rgba(100,255,218,0.15);color:#64FFDA;border:1px solid rgba(100,255,218,0.3);">Guidance Counselor</span>`
+          : `<span class="badge" style="background:rgba(192,132,252,0.15);color:#C084FC;border:1px solid rgba(192,132,252,0.3);">Researcher</span>`;
+        return `<tr>
+          <td>
+            <div style="font-weight:600;color:var(--text-primary);">${sp.real_name || sp.name}</div>
+          </td>
+          <td>${sp.email || 'Staff Email'}</td>
+          <td>${roleBadge}</td>
+          <td><span style="color:#10B981;font-size:0.85rem;">Active Authorized Staff</span></td>
+        </tr>`;
+      }).join('');
+    }
   }
 }
 
@@ -386,7 +424,6 @@ function initNavbar() {
 
   document.getElementById('signout-btn').addEventListener('click', async (e) => {
     e.preventDefault();
-
     await supabase.auth.signOut();
   });
 
@@ -395,8 +432,6 @@ function initNavbar() {
     document.getElementById('user-dropdown').classList.add('hidden');
     startAssessment();
   });
-
-
 }
 
 function initDashboardNav() {
@@ -406,8 +441,6 @@ function initDashboardNav() {
     tab.addEventListener('click', (e) => { e.preventDefault(); switchView(tab.dataset.view); });
   });
 }
-
-// ── AUTH ─────────────────────────────────────────────────────
 function initAuthButtons() {
   const openLogin    = () => { showAuthTab('login');    openModal('auth-overlay'); };
   const openRegister = () => { showAuthTab('register'); openModal('auth-overlay'); };
@@ -425,6 +458,39 @@ function initAuthButtons() {
   document.getElementById('auth-overlay').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal('auth-overlay'); });
   document.getElementById('go-register').addEventListener('click', (e) => { e.preventDefault(); showAuthTab('register'); });
   document.getElementById('go-login').addEventListener('click',    (e) => { e.preventDefault(); showAuthTab('login'); });
+
+  // Grade selection change listener for staff authorization passcode toggle
+  document.getElementById('reg-grade')?.addEventListener('change', (e) => {
+    const val = e.target.value;
+    const passcodeGroup = document.getElementById('reg-passcode-group');
+    const submitBtn = document.getElementById('reg-submit-btn');
+    if (val === 'Guidance Counselor' || val === 'Researcher') {
+      passcodeGroup?.classList.remove('hidden');
+      if (submitBtn) submitBtn.textContent = 'Create Staff Account ✨';
+    } else {
+      passcodeGroup?.classList.add('hidden');
+      if (submitBtn) submitBtn.textContent = 'Proceed to Parent Consent & Sign Up →';
+    }
+  });
+
+  // Parent Consent Modal button listeners
+  document.getElementById('close-parent-consent')?.addEventListener('click', () => closeModal('parent-consent-overlay'));
+  document.getElementById('btn-back-to-register')?.addEventListener('click', () => {
+    closeModal('parent-consent-overlay');
+    openModal('auth-overlay');
+  });
+
+  // Create Staff Account Modal button listeners
+  document.getElementById('close-create-staff')?.addEventListener('click', () => closeModal('create-staff-overlay'));
+  document.getElementById('btn-cancel-create-staff')?.addEventListener('click', () => closeModal('create-staff-overlay'));
+  document.getElementById('open-create-staff-btn')?.addEventListener('click', () => {
+    document.getElementById('staff-error')?.classList.add('hidden');
+    openModal('create-staff-overlay');
+  });
+  document.getElementById('open-create-staff-btn-2')?.addEventListener('click', () => {
+    document.getElementById('staff-error')?.classList.add('hidden');
+    openModal('create-staff-overlay');
+  });
 }
 
 function showAuthTab(tab) {
@@ -443,13 +509,11 @@ function initAuthForms() {
     const btn   = e.target.querySelector('button[type=submit]');
     btn.textContent = 'Signing in...'; btn.disabled = true;
 
-
     const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
     btn.textContent = 'Sign In'; btn.disabled = false;
 
     if (error) { showFormError('login-error', error.message); return; }
     closeModal('auth-overlay');
-    // onAuthStateChange will trigger showDashboard or 2FA
   });
 
   // ── REGISTER ──
@@ -461,43 +525,199 @@ function initAuthForms() {
     const age   = parseInt(document.getElementById('reg-age').value) || null;
     const email = document.getElementById('reg-email').value.trim().toLowerCase();
     const pass  = document.getElementById('reg-password').value;
+    const passcode = document.getElementById('reg-passcode')?.value?.trim();
     const btn   = e.target.querySelector('button[type=submit]');
 
     if (!name || !nickname || !grade || !email || !pass) { showFormError('reg-error', 'Please fill in all required fields.'); return; }
     if (pass.length < 6) { showFormError('reg-error', 'Password must be at least 6 characters.'); return; }
 
-    btn.textContent = 'Creating account...'; btn.disabled = true;
+    // Check staff account creation restriction (Guidance Counselor & Researcher)
+    if (grade === 'Guidance Counselor' || grade === 'Researcher') {
+      const VALID_PASSCODES = ['COUNSELOR2026', 'RESEARCHER2026', 'PSYCHE-ADMIN', 'COUNSELOR', 'RESEARCHER'];
+      if (!passcode || !VALID_PASSCODES.includes(passcode.toUpperCase())) {
+        showFormError('reg-error', 'Authorization Passcode is invalid. Guidance Counselor & Researcher accounts can only be created by authorized staff or with a valid access key.');
+        return;
+      }
 
-    // 1. Create auth user
-    const { data, error: signUpError } = await supabase.auth.signUp({ 
-      email, 
+      btn.textContent = 'Creating Staff Account...'; btn.disabled = true;
+
+      const { data, error: signUpError } = await supabase.auth.signUp({ 
+        email, 
+        password: pass,
+        options: { data: { real_name: name } }
+      });
+      btn.textContent = 'Create Staff Account ✨'; btn.disabled = false;
+
+      if (signUpError) { showFormError('reg-error', signUpError.message); return; }
+
+      currentUser = data.user;
+      const { data: profileData } = await supabase.from('profiles').insert({ 
+        id: data.user.id, 
+        name: nickname, 
+        real_name: name,
+        email: email,
+        grade, 
+        age,
+        parent_consent: true 
+      }).select().single();
+      currentProfile = profileData;
+
+      closeModal('auth-overlay');
+      await showDashboard();
+      return;
+    }
+
+    // Student account registration flow: Store draft and require Parent Consent & Confirmation before account creation
+    pendingRegistrationData = { name, nickname, grade, age, email, pass };
+
+    closeModal('auth-overlay');
+    document.getElementById('consent-student-summary').textContent = `${name} (${grade})`;
+    document.getElementById('parent-name').value = '';
+    document.getElementById('parent-contact').value = '';
+    document.getElementById('parent-check-confirm').checked = false;
+    document.getElementById('parent-consent-error').classList.add('hidden');
+
+    openModal('parent-consent-overlay');
+  });
+
+  // ── PARENT CONSENT & CONFIRMATION SUBMISSION ──
+  document.getElementById('parent-consent-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const parentName = document.getElementById('parent-name').value.trim();
+    const parentRelation = document.getElementById('parent-relation').value;
+    const parentContact = document.getElementById('parent-contact').value.trim();
+    const parentConfirm = document.getElementById('parent-check-confirm').checked;
+    const btn = document.getElementById('btn-submit-parent-consent');
+
+    if (!parentName || !parentContact) {
+      showFormError('parent-consent-error', 'Please fill in all parent/guardian contact details.');
+      return;
+    }
+    if (!parentConfirm) {
+      showFormError('parent-consent-error', 'Parent/guardian must check the confirmation checkbox to grant consent.');
+      return;
+    }
+
+    if (!pendingRegistrationData) {
+      showFormError('parent-consent-error', 'Registration information missing. Please try signing up again.');
+      return;
+    }
+
+    btn.textContent = 'Creating Account...'; btn.disabled = true;
+
+    const { name, nickname, grade, age, email, pass } = pendingRegistrationData;
+
+    // 1. Create auth user with parent consent metadata
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
       password: pass,
-      options: { data: { real_name: name } }
+      options: {
+        data: {
+          real_name: name,
+          parent_name: parentName,
+          parent_relation: parentRelation,
+          parent_contact: parentContact,
+          parent_consent: true,
+          parent_consent_date: new Date().toISOString()
+        }
+      }
     });
-    if (signUpError) { showFormError('reg-error', signUpError.message); btn.textContent = 'Create Account & Start Assessment'; btn.disabled = false; return; }
 
-    // 2. Set currentUser immediately so finishAssessment() has access before onAuthStateChange fires
+    if (signUpError) {
+      showFormError('parent-consent-error', signUpError.message);
+      btn.textContent = 'Confirm Consent & Create Account ✨'; btn.disabled = false;
+      return;
+    }
+
     currentUser = data.user;
 
-    // 3. Insert profile row
-    const { data: profileData } = await supabase.from('profiles').insert({ 
-      id: data.user.id, 
-      name: nickname, 
+    // 2. Insert profile row
+    const profilePayload = {
+      id: data.user.id,
+      name: nickname,
       real_name: name,
       email: email,
-      grade, 
-      age 
-    }).select().single();
-    currentProfile = profileData;
+      grade: grade,
+      age: age,
+      parent_name: parentName,
+      parent_relation: parentRelation,
+      parent_contact: parentContact,
+      parent_consent: true,
+      parent_consent_date: new Date().toISOString()
+    };
 
-    btn.textContent = 'Create Account & Start Assessment'; btn.disabled = false;
-    closeModal('auth-overlay');
+    let profileData = null;
+    const { data: insData, error: profileErr } = await supabase.from('profiles').insert(profilePayload).select().single();
+    if (profileErr) {
+      console.warn('DB profile insert with parent fields notice:', profileErr.message);
+      const fallbackPayload = { id: data.user.id, name: nickname, real_name: name, email, grade, age };
+      const { data: fbData } = await supabase.from('profiles').insert(fallbackPayload).select().single();
+      profileData = fbData || { ...profilePayload };
+    } else {
+      profileData = insData;
+    }
+
+    currentProfile = profileData;
+    btn.textContent = 'Confirm Consent & Create Account ✨'; btn.disabled = false;
+    pendingRegistrationData = null;
+
+    closeModal('parent-consent-overlay');
 
     // Proceed to dashboard and assessment
     await showDashboard();
-    if (grade !== 'Guidance Counselor') {
+    if (grade !== 'Guidance Counselor' && grade !== 'Researcher') {
       setTimeout(() => startAssessment(), 400);
     }
+  });
+
+  // ── IN-DASHBOARD STAFF (COUNSELOR & RESEARCHER) ACCOUNT CREATION ──
+  document.getElementById('create-staff-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const role = document.getElementById('staff-role').value;
+    const name = document.getElementById('staff-name').value.trim();
+    const nickname = document.getElementById('staff-nickname').value.trim() || name.split(' ')[0];
+    const email = document.getElementById('staff-email').value.trim().toLowerCase();
+    const pass = document.getElementById('staff-password').value;
+    const btn = document.getElementById('btn-submit-create-staff');
+
+    if (!name || !email || !pass) {
+      showFormError('staff-error', 'Please fill in all required staff fields.');
+      return;
+    }
+    if (pass.length < 6) {
+      showFormError('staff-error', 'Password must be at least 6 characters.');
+      return;
+    }
+
+    btn.textContent = 'Creating Staff Account...'; btn.disabled = true;
+
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password: pass,
+      options: { data: { real_name: name } }
+    });
+
+    btn.textContent = '➕ Create Staff Account'; btn.disabled = false;
+
+    if (signUpError) {
+      showFormError('staff-error', signUpError.message);
+      return;
+    }
+
+    if (data?.user) {
+      await supabase.from('profiles').insert({
+        id: data.user.id,
+        name: nickname,
+        real_name: name,
+        email: email,
+        grade: role,
+        parent_consent: true
+      });
+    }
+
+    closeModal('create-staff-overlay');
+    alert(`Success: ${role} account for ${name} (${email}) has been created successfully.`);
+    await renderCounselorDashboard();
   });
 }
 
