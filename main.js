@@ -242,6 +242,11 @@ let chatHistory        = [];
 let chatSessions       = [];
 let currentSessionId   = null;
 let pendingRegistrationData = null; // Stores pending registration payload prior to parent consent
+let _chatbotInited     = false;  // guard: only attach chat listeners once
+let _dashNavInited     = false;  // guard: only attach nav tab listeners once
+let _dashBtnsInited    = false;  // guard: only attach dashboard button listeners once
+let _lastInputWasVoice = false;  // track if last input was via mic (for auto-TTS)
+
 // ── Internationalization (i18n: EN & FIL) ─────────────────────
 const TRANSLATIONS = {
   en: {
