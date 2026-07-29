@@ -7,110 +7,223 @@ import { supabase } from './supabase.js';
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-// ── PSS-10 Questions ─────────────────────────────────────────
+// ── PSS-10 Questions (Bilingual: EN & FIL) ─────────────────────
 const ASSESSMENT_QUESTIONS = [
-  { q: "In the last month, how often have you been upset because of something that happened unexpectedly?", context: "Think about unexpected events related to school, family, or personal life.", options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"], scores: [0,1,2,3,4] },
-  { q: "In the last month, how often have you felt that you were unable to control the important things in your life?", context: "This includes schoolwork, deadlines, relationships, and personal goals.", options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"], scores: [0,1,2,3,4] },
-  { q: "In the last month, how often have you felt nervous and stressed?", context: "Consider all sources of stress: exams, requirements, social pressures.", options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"], scores: [0,1,2,3,4] },
-  { q: "In the last month, how often have you felt confident about your ability to handle your personal problems?", context: "Reversed question — feeling confident means lower stress.", options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"], scores: [4,3,2,1,0] },
-  { q: "In the last month, how often have you felt that things were going your way?", context: "Reversed question — things going well means lower stress.", options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"], scores: [4,3,2,1,0] },
-  { q: "In the last month, how often have you been unable to cope with all the things you had to do?", context: "Think about your school requirements, extracurricular activities, and responsibilities at home.", options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"], scores: [0,1,2,3,4] },
-  { q: "In the last month, how often have you been able to control irritations in your life?", context: "Reversed question — being able to control irritations means lower stress.", options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"], scores: [4,3,2,1,0] },
-  { q: "In the last month, how often have you felt that you were on top of things?", context: "Reversed question — feeling on top of things means lower stress.", options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"], scores: [4,3,2,1,0] },
-  { q: "In the last month, how often have you been angered because of things that were outside your control?", context: "Include school policies, peer behavior, or family situations.", options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"], scores: [0,1,2,3,4] },
-  { q: "In the last month, how often have you felt difficulties were piling up so high that you could not overcome them?", context: "This is about feeling overwhelmed by the overall amount of stress in your life.", options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"], scores: [0,1,2,3,4] },
+  {
+    q: "In the last month, how often have you been upset because of something that happened unexpectedly?",
+    q_fil: "Sa nakalipas na buwan, gaano ka kadalas nagalit o nalungkot dahil sa isang bagay na hindi mo inaasahan?",
+    context: "Think about unexpected events related to school, family, or personal life.",
+    context_fil: "Isipin ang mga hindi inaasahang kaganapan kaugnay ng eskwela, pamilya, o personal na buhay.",
+    options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"],
+    options_fil: ["Hindi Kailanman","Halos Hindi","Minsan","Madalas","Napakadalas"],
+    scores: [0,1,2,3,4]
+  },
+  {
+    q: "In the last month, how often have you felt that you were unable to control the important things in your life?",
+    q_fil: "Sa nakalipas na buwan, gaano ka kadalas nakaramdam na hindi mo makontrol ang mga importanteng bagay sa iyong buhay?",
+    context: "This includes schoolwork, deadlines, relationships, and personal goals.",
+    context_fil: "Kabilang dito ang mga gawain sa eskwela, deadlines, relasyon, at personal na layunin.",
+    options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"],
+    options_fil: ["Hindi Kailanman","Halos Hindi","Minsan","Madalas","Napakadalas"],
+    scores: [0,1,2,3,4]
+  },
+  {
+    q: "In the last month, how often have you felt nervous and stressed?",
+    q_fil: "Sa nakalipas na buwan, gaano ka kadalas nakaramdam ng kaba at stress?",
+    context: "Consider all sources of stress: exams, requirements, social pressures.",
+    context_fil: "Isaalang-alang ang lahat ng pinagmumulan ng stress: pagsusulit, requirements, at presyon ng lipunan.",
+    options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"],
+    options_fil: ["Hindi Kailanman","Halos Hindi","Minsan","Madalas","Napakadalas"],
+    scores: [0,1,2,3,4]
+  },
+  {
+    q: "In the last month, how often have you felt confident about your ability to handle your personal problems?",
+    q_fil: "Sa nakalipas na buwan, gaano ka kadalas nagkaroon ng tiwala sa iyong kakayahang harapin ang iyong mga personal na problema?",
+    context: "Reversed question — feeling confident means lower stress.",
+    context_fil: "Pabaligtad na tanong — ang pagkakaroon ng tiwala ay nangangahulugang mas mababang stress.",
+    options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"],
+    options_fil: ["Hindi Kailanman","Halos Hindi","Minsan","Madalas","Napakadalas"],
+    scores: [4,3,2,1,0]
+  },
+  {
+    q: "In the last month, how often have you felt that things were going your way?",
+    q_fil: "Sa nakalipas na buwan, gaano ka kadalas nakaramdam na maayos at pumapanig sa iyo ang mga mangyayari?",
+    context: "Reversed question — things going well means lower stress.",
+    context_fil: "Pabaligtad na tanong — kapag maayos ang mga nangyayari, mas mababa ang stress.",
+    options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"],
+    options_fil: ["Hindi Kailanman","Halos Hindi","Minsan","Madalas","Napakadalas"],
+    scores: [4,3,2,1,0]
+  },
+  {
+    q: "In the last month, how often have you been unable to cope with all the things you had to do?",
+    q_fil: "Sa nakalipas na buwan, gaano ka kadalas nahirapang harapin o kayanin ang lahat ng kailangan mong gawin?",
+    context: "Think about your school requirements, extracurricular activities, and responsibilities at home.",
+    context_fil: "Isipin ang iyong mga gawain sa eskwela, aktibidad, at responsibilidad sa bahay.",
+    options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"],
+    options_fil: ["Hindi Kailanman","Halos Hindi","Minsan","Madalas","Napakadalas"],
+    scores: [0,1,2,3,4]
+  },
+  {
+    q: "In the last month, how often have you been able to control irritations in your life?",
+    q_fil: "Sa nakalipas na buwan, gaano ka kadalas nakapagpigil o nakakontrol ng iyong pagkainis?",
+    context: "Reversed question — being able to control irritations means lower stress.",
+    context_fil: "Pabaligtad na tanong — ang kakayahang kontrolin ang pagkainis ay nangangahulugang mas mababang stress.",
+    options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"],
+    options_fil: ["Hindi Kailanman","Halos Hindi","Minsan","Madalas","Napakadalas"],
+    scores: [4,3,2,1,0]
+  },
+  {
+    q: "In the last month, how often have you felt that you were on top of things?",
+    q_fil: "Sa nakalipas na buwan, gaano ka kadalas nakaramdam na hawak mo sa kamay ang lahat ng iyong mga gawain?",
+    context: "Reversed question — feeling on top of things means lower stress.",
+    context_fil: "Pabaligtad na tanong — ang pakiramdam na kontrolado mo ang mga gawain ay nangangahulugang mas mababang stress.",
+    options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"],
+    options_fil: ["Hindi Kailanman","Halos Hindi","Minsan","Madalas","Napakadalas"],
+    scores: [4,3,2,1,0]
+  },
+  {
+    q: "In the last month, how often have you been angered because of things that were outside your control?",
+    q_fil: "Sa nakalipas na buwan, gaano ka kadalas nagalit dahil sa mga bagay na wala sa iyong kontrol?",
+    context: "Include school policies, peer behavior, or family situations.",
+    context_fil: "Kabilang ang mga patakaran sa paaralan, kilos ng kaklase, o sitwasyon sa pamilya.",
+    options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"],
+    options_fil: ["Hindi Kailanman","Halos Hindi","Minsan","Madalas","Napakadalas"],
+    scores: [0,1,2,3,4]
+  },
+  {
+    q: "In the last month, how often have you felt difficulties were piling up so high that you could not overcome them?",
+    q_fil: "Sa nakalipas na buwan, gaano ka kadalas nakaramdam na labis-labis na ang mga pagsubok at hindi mo na ito kayang lampasan?",
+    context: "This is about feeling overwhelmed by the overall amount of stress in your life.",
+    context_fil: "Ito ay tungkol sa pakiramdam na labis na nabibigatan sa dami ng stress sa buhay.",
+    options: ["Never","Almost Never","Sometimes","Fairly Often","Very Often"],
+    options_fil: ["Hindi Kailanman","Halos Hindi","Minsan","Madalas","Napakadalas"],
+    scores: [0,1,2,3,4]
+  },
 ];
 
 const WORKLOAD_QUESTIONS = [
-  { key: "homeworkLoad",   label: "Daily Homework Load",   q: "How heavy is your daily homework and assignment load?" },
-  { key: "examFrequency",  label: "Exam/Quiz Frequency",   q: "How often do you have exams or quizzes?" },
-  { key: "sleepQuality",   label: "Sleep Quality",          q: "How would you rate your sleep quality lately?",          reversed: true },
-  { key: "socialSupport",  label: "Social Support",         q: "How much social support do you feel from friends and family?", reversed: true },
+  { key: "homeworkLoad",   label: "Daily Homework Load",   label_fil: "Bigat ng Takdang-Aralin",   q: "How heavy is your daily homework and assignment load?", q_fil: "Gaano kabigat ang iyong mga araw-araw na takdang-aralin at proyekto?" },
+  { key: "examFrequency",  label: "Exam/Quiz Frequency",  label_fil: "Dalas ng Pagsusulit",       q: "How often do you have exams or quizzes?", q_fil: "Gaano ka kadalas magkaroon ng pagsusulit o quizzes?" },
+  { key: "sleepQuality",   label: "Sleep Quality",         label_fil: "Kalidad ng Pagtulog",      q: "How would you rate your sleep quality lately?", q_fil: "Paano mo ilalarawan ang kalidad ng iyong pagtulog kamakailan?", reversed: true },
+  { key: "socialSupport",  label: "Social Support",        label_fil: "Suporta mula sa Kapwa",    q: "How much social support do you feel from friends and family?", q_fil: "Gaano katindi ang suporta na nararamdaman mo mula sa pamilya at kaibigan?", reversed: true },
 ];
 
 const TOTAL_STEPS = ASSESSMENT_QUESTIONS.length + WORKLOAD_QUESTIONS.length;
 const WORKLOAD_LABELS = ["Very Low","Low","Moderate","High","Very High"];
+const WORKLOAD_LABELS_FIL = ["Napakababa","Mababa","Katamtaman","Mataas","Napakataas"];
 
-// ── HEEADSSS Psychosocial Questions ──────────────────────────
+// ── HEEADSSS Psychosocial Questions (Bilingual: EN & FIL) ────
 const HEEADSSS_QUESTIONS = [
   {
     domain: 'home',
     title: 'Home Environment',
+    title_fil: 'Kapaligiran sa Tahanan',
     badge: 'H',
     badgeClass: 'h-color',
     q: 'How supported, safe, and comfortable do you feel in your home environment with family or guardians?',
+    q_fil: 'Gaano ka kaligtas, kasuportado, at kakumportable sa inyong tahanan kasama ang iyong pamilya o tagapangalaga?',
     context: 'Evaluates family dynamics, housing stability, and communication at home.',
+    context_fil: 'Sinisiyasat ang ugnayan sa pamilya, kaligtasan sa bahay, at komunikasyon sa mga magulang.',
     options: ['Very Safe & Supported', 'Mostly Comfortable', 'Occasional Tension', 'Frequent Conflict', 'Unsafe / Severe Conflict'],
+    options_fil: ['Ligtas at Suportado', 'Karamihan ay Kumportable', 'Minsan ay may Tensyon', 'Madalas na Alitan', 'Hindi Ligtas / Malalang Alitan'],
     scores: [0, 1, 2, 3, 4]
   },
   {
     domain: 'education',
     title: 'Education & School',
+    title_fil: 'Edukasyon at Paaralan',
     badge: 'E',
     badgeClass: 'e-color',
     q: 'How are you coping with your school requirements, grades, and academic expectations?',
+    q_fil: 'Paano mo nakakayanan ang mga kinakailangan sa paaralan, marka, at mga inaasahan sa pag-aaral?',
     context: 'Measures academic strain, career goals, and school environment.',
+    context_fil: 'Sinusukat ang stress sa akademya, mga layunin sa karera, at kapaligiran sa eskwela.',
     options: ['Managing Very Well', 'Doing Fine', 'Moderate Academic Stress', 'Heavy Pressure', 'Overwhelmed / Failing'],
+    options_fil: ['Kayang-kaya / Maayos', 'Mabuti Naman', 'Katamtamang Stress', 'Mabigat na Presyon', 'Sobrang Bigat / Nahihirapan'],
     scores: [0, 1, 2, 3, 4]
   },
   {
     domain: 'eating',
     title: 'Eating & Body Image',
+    title_fil: 'Pagkain at Pagtingin sa Katawan',
     badge: 'E',
     badgeClass: 'e2-color',
     q: 'How confident and healthy do you feel regarding your eating habits, nutrition, and body image?',
+    q_fil: 'Gaano ka tiwala at kalusog sa iyong mga gawi sa pagkain, nutrisyon, at pagtingin sa iyong katawan?',
     context: 'Assesses dietary regularity, body positivity, and meal habits.',
+    context_fil: 'Sinisiyasat ang pagiging regular ng pagkain at Positibong pagtingin sa katawan.',
     options: ['Very Healthy & Confident', 'Generally Good', 'Minor Body Image Concerns', 'Irregular Eating / Distressed', 'Severe Eating Issues'],
+    options_fil: ['Napakalusog at Tiwala', 'Pangkalahatang Mabuti', 'Kaunting Alalahanin sa Katawan', 'Hindi Regular na Pagkain', 'May Malalang Isyu sa Pagkain'],
     scores: [0, 1, 2, 3, 4]
   },
   {
     domain: 'activities',
     title: 'Activities & Peers',
+    title_fil: 'Aktibidad at Kaibigan',
     badge: 'A',
     badgeClass: 'a-color',
     q: 'How balanced is your social life, friendships, sports, hobbies, and screen time?',
+    q_fil: 'Gaano kabalanse ang iyong buhay-lipunan, pakikipagkaibigan, palakasan, mga libangan, at oras sa screen?',
     context: 'Explores peer support, screen balance, and social connectedness.',
+    context_fil: 'Tinitingnan ang suporta ng kaibigan, balanse sa screen, at ugnayan sa kapwa.',
     options: ['Great Balance & Strong Friends', 'Good Friends & Active', 'Sometimes Isolated', 'High Screen / Low Connection', 'Lonely / Excluded'],
+    options_fil: ['Balanse at May Mabuting Kaibigan', 'May Mabuting Kaibigan at Aktibo', 'Minsan ay Nag-iisa', 'Subsob sa Screen / Kakaunti ang Ugnayan', 'Malungkot / Bukod'],
     scores: [0, 1, 2, 3, 4]
   },
   {
     domain: 'drugs',
     title: 'Drugs & Alcohol Exposure',
+    title_fil: 'Alak at Bisyo',
     badge: 'D',
     badgeClass: 'd-color',
     q: 'How often do you or your close peer group encounter vaping, alcohol, or substance pressure?',
+    q_fil: 'Gaano ka kadalas o ang iyong mga kaibigan nakakaranas ng presyon sa pag-vape, alak, o anumang bisyo?',
     context: 'Screens exposure to substance use and peer influences.',
+    context_fil: 'Sinusuri ang exposure sa alak, vape, at impluwensya ng kaibigan.',
     options: ['Never / No Exposure', 'Rare Exposure', 'Occasional Peer Vaping/Alcohol', 'Frequent Peer Pressure', 'Regular Personal/Peer Use'],
+    options_fil: ['Kailanman / Walang Exposure', 'Kakaunting Exposure', 'Minsang Presyon ng Kaibigan', 'Madalas na Presyon', 'Regular na Paggamit'],
     scores: [0, 1, 2, 3, 4]
   },
   {
     domain: 'sexuality',
     title: 'Sexuality & Identity',
+    title_fil: 'Identidad at Relasyon',
     badge: 'S',
     badgeClass: 's1-color',
     q: 'How comfortable and supported do you feel regarding your identity, relationships, and self-expression?',
+    q_fil: 'Gaano ka kakumportable at kasuportado sa iyong pagkakakilanlan, pakikipagrelasyon, at pagpapahayag ng sarili?',
     context: 'Addresses relationship safety, personal boundaries, and identity support.',
+    context_fil: 'Tumatakay sa kaligtasan sa relasyon, mga hangganan, at suporta sa pagkakakilanlan.',
     options: ['Completely Secure & Supported', 'Mostly Comfortable', 'Some Identity Questions', 'Relationship Strain', 'Distressed / Unsupported'],
+    options_fil: ['Ligtas at Kasuportado', 'Karamihan ay Kumportable', 'May Ilang Tanong sa Sarili', 'May Problema sa Relasyon', 'Nahihirapan / Walang Suporta'],
     scores: [0, 1, 2, 3, 4]
   },
   {
     domain: 'suicide',
     title: 'Suicide & Mood',
+    title_fil: 'Damdamin at Kalusugan ng Isip',
     badge: 'S',
     badgeClass: 's2-color',
     q: 'How often in the past month have you felt persistent sadness, anxiety, hopelessness, or self-doubt?',
+    q_fil: 'Sa nakalipas na buwan, gaano ka kadalas nakaramdam ng patuloy na kalungkutan, pagkabalisa, kawalan ng pag-asa, o pag-aalinlangan sa sarili?',
     context: 'Identifies emotional distress, mood regulation, and mental health crisis risks.',
+    context_fil: 'Tumatukoy sa emotional distress, pagkabalisa, at mga panganib sa kalusugan ng kaisipan.',
     options: ['Never / High Morale', 'Rarely / Mild Blues', 'Sometimes Sad or Anxious', 'Frequently Hopeless', 'Severe Distress / Self-Harm Thoughts'],
+    options_fil: ['Kailanman / Mataas ang Moral', 'Kakaunti / Bahagyang Lungkot', 'Minsan ay Malungkot o Balisa', 'Madalas na Walang Pag-asa', 'Napakabigat / Malalang Lungkot'],
     scores: [0, 1, 2, 3, 4]
   },
   {
     domain: 'safety',
     title: 'Safety & Cyberbullying',
+    title_fil: 'Kaligtasan at Cyberbullying',
     badge: 'S',
     badgeClass: 's3-color',
     q: 'How safe do you feel from bullying, cyberbullying, physical threats, or online harassment?',
+    q_fil: 'Gaano ka kaligtas mula sa bullying, cyberbullying, banta sa katawan, o pangha-harass sa internet?',
     context: 'Assesses physical, digital, and community safety.',
+    context_fil: 'Sinisiyasat ang kaligtasan sa katawan, digital na mundo, at pamayanan.',
     options: ['Completely Safe Everywhere', 'Generally Safe', 'Minor Online Harassment', 'Frequent Bullying / Cyberbullying', 'Unsafe Environment'],
+    options_fil: ['Ligtas sa Lahat ng Lugar', 'Pangkalahatang Ligtas', 'Bahagyang Online Harassment', 'Madalas na Bullying / Cyberbullying', 'Hindi Ligtas na Kapaligiran'],
     scores: [0, 1, 2, 3, 4]
   }
 ];
@@ -129,10 +242,240 @@ let chatHistory        = [];
 let chatSessions       = [];
 let currentSessionId   = null;
 let pendingRegistrationData = null; // Stores pending registration payload prior to parent consent
-let _chatbotInited     = false;  // guard: only attach chat listeners once
-let _dashNavInited     = false;  // guard: only attach nav tab listeners once
-let _dashBtnsInited    = false;  // guard: only attach dashboard button listeners once
-let _lastInputWasVoice = false;  // track if last input was via mic (for auto-TTS)
+// ── Internationalization (i18n: EN & FIL) ─────────────────────
+const TRANSLATIONS = {
+  en: {
+    nav_features: 'Features',
+    nav_how: 'How It Works',
+    nav_heeadsss: 'HEEADSSS',
+    nav_chat: 'AI Chat',
+    nav_dashboard: 'Dashboard',
+    nav_ai_chat: 'AI Chat',
+    nav_progress: 'My Progress',
+    nav_signin: 'Sign In',
+    nav_get_started: 'Get Started',
+    nav_checkin: '+ Check-in',
+    retake_assess: 'Retake Assessment',
+    signout: 'Sign Out',
+    lang_toggle_label: 'English',
+
+    hero_badge: '🍃 Mindful AI Mental Wellness Sanctuary',
+    hero_title: 'Understand Stress.<br><span class="gradient-text">Restore Inner Peace.</span>',
+    hero_sub: 'Empathetic AI stress detection, personalized mental wellness guidance, and real-time serene support designed specifically for Senior High School students.',
+    hero_btn_start: 'Get Started Free',
+    hero_btn_assess: 'Take Stress Assessment',
+    badge_monitoring: 'Serene Monitoring',
+    badge_ai_companion: 'Mindful AI Companion',
+    badge_private: 'Private & Peaceful',
+
+    feat_title: 'Intelligent Healthcare',
+    feat_sub: 'Cutting-edge features tailored for student wellness',
+    feat_1_title: 'AI Stress Detection',
+    feat_1_desc: 'Analyzes stress through self-reports, behavioral patterns, and emotional keywords using the Perceived Stress Scale.',
+    feat_2_title: 'Real-Time Monitoring',
+    feat_2_desc: 'Tracks emotional well-being through daily check-ins and provides instant stress-level assessment with trend analytics.',
+    feat_3_title: 'Personalized Recommendations',
+    feat_3_desc: 'Generates customized coping strategies, breathing exercises, and relaxation activities based on your unique stress profile.',
+    feat_4_title: 'AI Chat Companion',
+    feat_4_desc: 'Powered by Google Gemini AI — provides supportive conversations and intelligent stress-management guidance 24/7.',
+    feat_5_title: 'Student Wellness Dashboard',
+    feat_5_desc: 'Visualizes your stress trends, emotional health scores, and wellness progress over time with beautiful interactive charts.',
+
+    hiw_title: 'How PSYCHE Works',
+    hiw_sub: 'Seamlessly integrated into your daily academic routine',
+    hiw_step1_title: 'Assessment',
+    hiw_step1_desc: 'Complete the 10-question Perceived Stress Scale to establish your baseline.',
+    hiw_step2_title: 'AI Analysis',
+    hiw_step2_desc: 'PSYCHE AI processes your responses and classifies your stress level.',
+    hiw_step3_title: 'Classification',
+    hiw_step3_desc: 'Get your score: Low, Moderate, High, or Severe stress level.',
+    hiw_step4_title: 'Intervention',
+    hiw_step4_desc: 'Receive tailored exercises and coping strategies for your level.',
+    hiw_step5_title: 'Monitoring',
+    hiw_step5_desc: 'Daily check-ins track your progress and build long-term resilience.',
+    hiw_btn: 'Start Your Wellness Journey',
+
+    heeadsss_badge: '🩺 Adolescent Psychosocial Standard',
+    heeadsss_title: 'The HEEADSSS Framework',
+    heeadsss_sub: 'A comprehensive clinical screening tool standard evaluating key psychosocial risk areas in adolescent health & well-being.',
+    heeadsss_btn: 'Take HEEADSSS Screening Assessment',
+
+    chat_title: 'Empathetic AI Companion',
+    chat_sub: 'Always available to listen, guide, and support. PSYCHE uses advanced Google Gemini AI to understand not just what you say, but how you feel.',
+    chat_signin_sub: 'Sign in to unlock the full AI chat experience with your personal wellness context.',
+    chat_signin_btn: 'Sign In to Chat',
+
+    dash_sub: 'Here\'s your wellness overview for today.',
+    dash_stress_score: 'Stress Score',
+    dash_todays_mood: 'Today\'s Mood',
+    dash_no_checkin: 'No check-in yet',
+    dash_checkin_now: 'Check In Now',
+    dash_weekly_trend: 'Weekly Stress Trend',
+    dash_trend_placeholder: 'Complete daily check-ins to see your trend',
+    dash_classification: 'Stress Classification',
+    dash_workload: 'Academic Workload',
+    dash_recommendations: 'AI Recommendations',
+    dash_history: 'Assessment History',
+    dash_heeadsss_profile: 'HEEADSSS Psychosocial Profile',
+    dash_heeadsss_sub: '8-Domain Adolescent Wellness & Safety Breakdown',
+    dash_screening_btn: 'Screening Test',
+
+    level_low: 'Low',
+    level_moderate: 'Moderate',
+    level_high: 'High',
+    level_severe: 'Severe',
+
+    q_step: 'Question',
+    q_of: 'of',
+    acad_profile: 'Academic Profile',
+    acad_sub: 'Help us understand your academic environment for better recommendations.',
+    btn_next: 'Next →',
+    btn_back: '← Back',
+    btn_continue: 'Continue →',
+    btn_results: '✨ Get My Results',
+    btn_heeadsss_finish: '✨ Complete HEEADSSS Profile',
+  },
+  fil: {
+    nav_features: 'Mga Tampok',
+    nav_how: 'Paano Gumagana',
+    nav_heeadsss: 'HEEADSSS',
+    nav_chat: 'AI Tsat',
+    nav_dashboard: 'Dashboard',
+    nav_ai_chat: 'AI Tsat',
+    nav_progress: 'Aking Pag-unlad',
+    nav_signin: 'Mag-sign In',
+    nav_get_started: 'Magsimula',
+    nav_checkin: '+ Mag-Check-in',
+    retake_assess: 'Ulitin ang Pagsusuri',
+    signout: 'Mag-Sign Out',
+    lang_toggle_label: 'Tagalog',
+
+    hero_badge: '🍃 Mapagkalingang AI Sanctuary para sa Kalusugan ng Isip',
+    hero_title: 'Unawain ang Stress.<br><span class="gradient-text">Ibalik ang Kapayapaan ng Isip.</span>',
+    hero_sub: 'Makiramay na pagtukoy ng stress gamit ang AI, gabay sa kalusugan ng isip, at payapang suporta para sa mga mag-aaral ng Senior High School.',
+    hero_btn_start: 'Magsimula nang Libre',
+    hero_btn_assess: 'Subukan ang Pagsusuri sa Stress',
+    badge_monitoring: 'Payapang Pagsubaybay',
+    badge_ai_companion: 'Mapagkalingang AI Kasama',
+    badge_private: 'Pribado at Payapa',
+
+    feat_title: 'Matalinong Pangangalaga sa Kalusugan',
+    feat_sub: 'Makabagong mga tampok na dinisenyo para sa kalusugan ng mag-aaral',
+    feat_1_title: 'AI Pagtukoy sa Stress',
+    feat_1_desc: 'Sinusuri ang stress gamit ang mga ulat sa sarili at emosyonal na salita batay sa Perceived Stress Scale.',
+    feat_2_title: 'Real-Time na Pagsubaybay',
+    feat_2_desc: 'Sinusubaybayan ang damdamin sa pamamagitan ng araw-araw na check-in at nagbibigay ng agarang pagsusuri ng stress.',
+    feat_3_title: 'Personalized na Rekomendasyon',
+    feat_3_desc: 'Naglalaan ng mga angkop na diskarte sa pagharap sa stress, pagsasanay sa paghinga, at mga gawaing pampalipas-stress.',
+    feat_4_title: 'AI Kasama sa Pakikipag-usap',
+    feat_4_desc: 'Gamit ang Google Gemini AI — nagbibigay ng suporta at matalinong gabay sa pamamahala ng stress 24/7.',
+    feat_5_title: 'Dashboard para sa Mag-aaral',
+    feat_5_desc: 'Ipinapakita ang antas ng stress, marka sa emosyonal na kalusugan, at pag-unlad gamit ang mga tsart.',
+
+    hiw_title: 'Paano Gumagana ang PSYCHE',
+    hiw_sub: 'Madaling nakasama sa iyong araw-araw na buhay-estudyante',
+    hiw_step1_title: 'Pagsusuri',
+    hiw_step1_desc: 'Sagutan ang 10-tanong na Perceived Stress Scale upang malaman ang iyong baseline.',
+    hiw_step2_title: 'Pagsusuri ng AI',
+    hiw_step2_desc: 'Sinusuri ng PSYCHE AI ang iyong mga sagot at tinutukoy ang iyong antas ng stress.',
+    hiw_step3_title: 'Pagtatasa',
+    hiw_step3_desc: 'Alamin ang iyong marka: Mababa, Katamtaman, Mataas, o Malalang stress.',
+    hiw_step4_title: 'Interbensyon',
+    hiw_step4_desc: 'Tumanggap ng mga nakalaang pagsasanay at pamamaraan para sa iyong antas.',
+    hiw_step5_title: 'Pagsubaybay',
+    hiw_step5_desc: 'Araw-araw na check-in upang subaybayan ang iyong pag-unlad at bumuo ng katatagan.',
+    hiw_btn: 'Simulan ang Iyong Paglalakbay',
+
+    heeadsss_badge: '🩺 Pamantayang Psychosocial para sa Kabataan',
+    heeadsss_title: 'Ang HEEADSSS Framework',
+    heeadsss_sub: 'Isang klinikal na tool sa pagtatasa na nagsusuri ng mga pangunahing bahagi ng kalusugan at kapakanan ng kabataan.',
+    heeadsss_btn: 'Subukan ang HEEADSSS Screening Assessment',
+
+    chat_title: 'Mapagkalingang AI Kasama',
+    chat_sub: 'Laging handang makinig at gumabay. Ginagamit ng PSYCHE ang Google Gemini AI upang maunawaan hindi lamang ang iyong sinasabi kundi ang iyong nararamdaman.',
+    chat_signin_sub: 'Mag-sign in upang magamit ang kumpletong AI chat gamit ang iyong personal na rekord ng kalusugan.',
+    chat_signin_btn: 'Mag-sign In para Mag-tsat',
+
+    dash_sub: 'Narito ang iyong buod ng kalusugan para sa araw na ito.',
+    dash_stress_score: 'Marka sa Stress',
+    dash_todays_mood: 'Damdamin Ngayong Araw',
+    dash_no_checkin: 'Wala pang check-in',
+    dash_checkin_now: 'Mag-Check In Ngayon',
+    dash_weekly_trend: 'Lingguhang Trend ng Stress',
+    dash_trend_placeholder: 'Kumpletuhin ang araw-araw na check-in para makita ang trend',
+    dash_classification: 'Kategorya ng Stress',
+    dash_workload: 'Gawain sa Akademya',
+    dash_recommendations: 'Mga Rekomendasyon ng AI',
+    dash_history: 'Kasaysayan ng Pagsusuri',
+    dash_heeadsss_profile: 'HEEADSSS Psychosocial Profile',
+    dash_heeadsss_sub: '8-Bahaging Pagsusuri sa Kalusugan at Kaligtasan ng Kabataan',
+    dash_screening_btn: 'Subukan ang Screening Test',
+
+    level_low: 'Mababa',
+    level_moderate: 'Katamtaman',
+    level_high: 'Mataas',
+    level_severe: 'Malala',
+
+    q_step: 'Tanong',
+    q_of: 'sa',
+    acad_profile: 'Akademikong Profile',
+    acad_sub: 'Tulungan kaming maunawaan ang iyong kapaligiran sa pag-aaral para sa mas magandang rekomendasyon.',
+    btn_next: 'Susunod →',
+    btn_back: '← Bumalik',
+    btn_continue: 'Ipagpatuloy →',
+    btn_results: '✨ Kunan ng Resulta',
+    btn_heeadsss_finish: '✨ Kumpletuhin ang HEEADSSS Profile',
+  }
+};
+
+let currentLang = localStorage.getItem('psyche_lang') || 'en';
+
+function t(key) {
+  return TRANSLATIONS[currentLang]?.[key] || TRANSLATIONS.en[key] || key;
+}
+
+function setLanguage(lang) {
+  currentLang = lang;
+  localStorage.setItem('psyche_lang', lang);
+
+  const labelEl = document.getElementById('lang-toggle-label');
+  if (labelEl) {
+    labelEl.textContent = lang === 'fil' ? 'Tagalog' : 'English';
+  }
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if (val) {
+      if (val.includes('<')) el.innerHTML = val;
+      else el.textContent = val;
+    }
+  });
+
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    const val = t(key);
+    if (val) el.placeholder = val;
+  });
+
+  const modal = document.getElementById('assessment-overlay');
+  if (modal && !modal.classList.contains('hidden')) {
+    renderAssessmentQuestion();
+  }
+
+  renderHeeadsssWidget();
+}
+
+function initLanguageSwitcher() {
+  const btn = document.getElementById('lang-toggle-btn');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      const next = currentLang === 'en' ? 'fil' : 'en';
+      setLanguage(next);
+    });
+  }
+  setLanguage(currentLang);
+}
 
 // ── Helpers ──────────────────────────────────────────────────
 const getGreeting = () => { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"; };
@@ -211,6 +554,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initBreathingModal();
   initCheckinModal();
   initZenAudio();
+  initLanguageSwitcher();
 
 
   // Show a loading state
@@ -783,6 +1127,8 @@ function startAssessment(type = 'pss') {
 
 function renderAssessmentQuestion() {
   const container = document.getElementById('assessment-questions-container');
+  const isFil = currentLang === 'fil';
+  document.getElementById('assess-prev').textContent = t('btn_back');
 
   if (activeAssessmentType === 'heeadsss') {
     const totalHeeadsss = HEEADSSS_QUESTIONS.length;
@@ -793,17 +1139,21 @@ function renderAssessmentQuestion() {
 
     const q = HEEADSSS_QUESTIONS[assessmentStep];
     const selected = heeadsssAnswers[assessmentStep];
+    const titleText = isFil && q.title_fil ? q.title_fil : q.title;
+    const contextText = isFil && q.context_fil ? q.context_fil : q.context;
+    const qText = isFil && q.q_fil ? q.q_fil : q.q;
+    const optionsList = isFil && q.options_fil ? q.options_fil : q.options;
 
     container.innerHTML = `
       <div class="question-block">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
           <div class="domain-mini-badge ${q.badgeClass}" style="width:34px;height:34px;font-size:1.1rem;">${q.badge}</div>
-          <h3 style="margin:0;font-size:1.25rem;">HEEADSSS: ${q.title} (${assessmentStep + 1} of ${totalHeeadsss})</h3>
+          <h3 style="margin:0;font-size:1.25rem;">HEEADSSS: ${titleText} (${assessmentStep + 1} ${t('q_of')} ${totalHeeadsss})</h3>
         </div>
-        <p class="q-context">${q.context}</p>
-        <p style="font-size:1.15rem;font-weight:600;color:#E6F1FF;margin-bottom:28px;">${q.q}</p>
+        <p class="q-context">${contextText}</p>
+        <p style="font-size:1.15rem;font-weight:600;color:#E6F1FF;margin-bottom:28px;">${qText}</p>
         <div class="options-grid">
-          ${q.options.map((opt, i) => `<button class="option-btn ${selected === i ? 'selected' : ''}" data-index="${i}">${opt}</button>`).join('')}
+          ${optionsList.map((opt, i) => `<button class="option-btn ${selected === i ? 'selected' : ''}" data-index="${i}">${opt}</button>`).join('')}
         </div>
       </div>`;
 
@@ -813,7 +1163,7 @@ function renderAssessmentQuestion() {
       btn.classList.add('selected');
     }));
 
-    document.getElementById('assess-next').textContent = assessmentStep === totalHeeadsss - 1 ? '✨ Complete HEEADSSS Profile' : 'Next →';
+    document.getElementById('assess-next').textContent = assessmentStep === totalHeeadsss - 1 ? t('btn_heeadsss_finish') : t('btn_next');
     return;
   }
 
@@ -825,13 +1175,17 @@ function renderAssessmentQuestion() {
   if (assessmentStep < ASSESSMENT_QUESTIONS.length) {
     const q        = ASSESSMENT_QUESTIONS[assessmentStep];
     const selected = assessmentAnswers[assessmentStep];
+    const contextText = isFil && q.context_fil ? q.context_fil : q.context;
+    const qText = isFil && q.q_fil ? q.q_fil : q.q;
+    const optionsList = isFil && q.options_fil ? q.options_fil : q.options;
+
     container.innerHTML = `
       <div class="question-block">
-        <h3>Question ${assessmentStep + 1} of ${ASSESSMENT_QUESTIONS.length}</h3>
-        <p class="q-context">${q.context}</p>
-        <p style="font-size:1.15rem;font-weight:600;color:#E6F1FF;margin-bottom:28px;">${q.q}</p>
+        <h3>${t('q_step')} ${assessmentStep + 1} ${t('q_of')} ${ASSESSMENT_QUESTIONS.length}</h3>
+        <p class="q-context">${contextText}</p>
+        <p style="font-size:1.15rem;font-weight:600;color:#E6F1FF;margin-bottom:28px;">${qText}</p>
         <div class="options-grid">
-          ${q.options.map((opt, i) => `<button class="option-btn ${selected === i ? 'selected' : ''}" data-index="${i}">${opt}</button>`).join('')}
+          ${optionsList.map((opt, i) => `<button class="option-btn ${selected === i ? 'selected' : ''}" data-index="${i}">${opt}</button>`).join('')}
         </div>
       </div>`;
     container.querySelectorAll('.option-btn').forEach(btn => btn.addEventListener('click', () => {
@@ -839,18 +1193,21 @@ function renderAssessmentQuestion() {
       container.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
     }));
-    document.getElementById('assess-next').textContent = assessmentStep === ASSESSMENT_QUESTIONS.length - 1 ? 'Continue →' : 'Next →';
+    document.getElementById('assess-next').textContent = assessmentStep === ASSESSMENT_QUESTIONS.length - 1 ? t('btn_continue') : t('btn_next');
   } else {
     const wIdx     = assessmentStep - ASSESSMENT_QUESTIONS.length;
     const wq       = WORKLOAD_QUESTIONS[wIdx];
     const selected = workloadAnswers[wq.key];
+    const qText = isFil && wq.q_fil ? wq.q_fil : wq.q;
+    const optionsList = isFil ? WORKLOAD_LABELS_FIL : WORKLOAD_LABELS;
+
     container.innerHTML = `
       <div class="question-block">
-        <h3>Academic Profile ${wIdx + 1} of ${WORKLOAD_QUESTIONS.length}</h3>
-        <p class="q-context">Help us understand your academic environment for better recommendations.</p>
-        <p style="font-size:1.15rem;font-weight:600;color:#E6F1FF;margin-bottom:28px;">${wq.q}</p>
+        <h3>${t('acad_profile')} ${wIdx + 1} ${t('q_of')} ${WORKLOAD_QUESTIONS.length}</h3>
+        <p class="q-context">${t('acad_sub')}</p>
+        <p style="font-size:1.15rem;font-weight:600;color:#E6F1FF;margin-bottom:28px;">${qText}</p>
         <div class="options-grid">
-          ${WORKLOAD_LABELS.map((opt, i) => `<button class="option-btn ${selected === i ? 'selected' : ''}" data-index="${i}">${opt}</button>`).join('')}
+          ${optionsList.map((opt, i) => `<button class="option-btn ${selected === i ? 'selected' : ''}" data-index="${i}">${opt}</button>`).join('')}
         </div>
       </div>`;
     container.querySelectorAll('.option-btn').forEach(btn => btn.addEventListener('click', () => {
@@ -858,7 +1215,7 @@ function renderAssessmentQuestion() {
       container.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
     }));
-    document.getElementById('assess-next').textContent = wIdx === WORKLOAD_QUESTIONS.length - 1 ? '✨ Get My Results' : 'Next →';
+    document.getElementById('assess-next').textContent = wIdx === WORKLOAD_QUESTIONS.length - 1 ? t('btn_results') : t('btn_next');
   }
 }
 
@@ -1055,6 +1412,7 @@ async function renderDashboard() {
 function renderHeeadsssWidget(customResults = null) {
   const container = document.getElementById('heeadsss-dashboard-grid');
   if (!container) return;
+  const isFil = currentLang === 'fil';
 
   let results = customResults;
   if (!results && currentUser) {
@@ -1072,11 +1430,11 @@ function renderHeeadsssWidget(customResults = null) {
   if (!results || !results.length) {
     const defaults = HEEADSSS_QUESTIONS.map(q => ({
       domain: q.domain,
-      title: q.title,
+      title: isFil && q.title_fil ? q.title_fil : q.title,
       badge: q.badge,
       badgeClass: q.badgeClass,
       pct: 0,
-      statusText: 'Not Screened Yet',
+      statusText: isFil ? 'Hindi pa Nasusuri' : 'Not Screened Yet',
       statusColor: 'var(--text-secondary)'
     }));
     container.innerHTML = defaults.map(d => `
@@ -1096,12 +1454,15 @@ function renderHeeadsssWidget(customResults = null) {
     return;
   }
 
-  container.innerHTML = results.map(d => `
+  container.innerHTML = results.map(d => {
+    const qObj = HEEADSSS_QUESTIONS.find(q => q.domain === d.domain);
+    const titleText = isFil && qObj?.title_fil ? qObj.title_fil : d.title;
+    return `
     <div class="domain-item-card">
       <div class="domain-item-header">
         <div class="domain-item-title">
           <div class="domain-mini-badge ${d.badgeClass}">${d.badge}</div>
-          <span>${d.title}</span>
+          <span>${titleText}</span>
         </div>
         <span style="font-size:0.78rem;color:${d.statusColor};font-weight:600;">${d.statusText}</span>
       </div>
@@ -1109,18 +1470,32 @@ function renderHeeadsssWidget(customResults = null) {
         <div class="domain-progress-fill" style="width:${d.pct}%;background:${d.statusColor};"></div>
       </div>
     </div>
-  `).join('');
+  `;}).join('');
 }
 
 function renderWorkload(workload) {
   const container = document.getElementById('workload-display');
-  if (!workload || !Object.keys(workload).length) { container.innerHTML = '<p style="color:var(--text-secondary);">No workload data yet.</p>'; return; }
+  if (!workload || !Object.keys(workload).length) { 
+    container.innerHTML = `<p style="color:var(--text-secondary);">${currentLang === 'fil' ? 'Wala pang datos sa mga gawain.' : 'No workload data yet.'}</p>`; 
+    return; 
+  }
+  const isFil = currentLang === 'fil';
+  const labelsList = isFil ? WORKLOAD_LABELS_FIL : WORKLOAD_LABELS;
+
   container.innerHTML = WORKLOAD_QUESTIONS.map(wq => {
     const val = workload[wq.key] ?? 0;
-    const pct = wq.reversed ? 100 - ((val / 4) * 100) : ((val / 4) * 100);
-    return `<div class="workload-item"><div class="workload-label"><span>${wq.label}</span><span>${WORKLOAD_LABELS[val]}</span></div><div class="workload-bar"><div class="workload-fill" style="width:0%" data-width="${pct}%"></div></div></div>`;
+    const labelText = isFil && wq.label_fil ? wq.label_fil : wq.label;
+    const valText   = labelsList[val] || labelsList[0];
+    const pct       = (val / 4) * 100;
+    return `
+      <div class="workload-item">
+        <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:4px;">
+          <span>${labelText}</span>
+          <span style="color:var(--accent-cyan);font-weight:600;">${valText}</span>
+        </div>
+        <div class="workload-bar-track"><div class="workload-bar-fill" style="width:${pct}%;"></div></div>
+      </div>`;
   }).join('');
-  setTimeout(() => container.querySelectorAll('.workload-fill').forEach(el => el.style.width = el.dataset.width), 400);
 }
 
 function renderRecommendations(recs) {

@@ -156,6 +156,28 @@ input, select, textarea, button { font-family: var(--font-main); }
   box-shadow: 0 0 16px rgba(116, 198, 157, 0.4);
 }
 
+/* Language Switcher Button */
+.btn-lang-toggle {
+  background: rgba(181, 168, 213, 0.12);
+  border: 1px solid rgba(181, 168, 213, 0.35);
+  color: #C4B9E0;
+  padding: 8px 16px;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-lang-toggle:hover {
+  background: rgba(181, 168, 213, 0.25);
+  border-color: var(--accent-iris);
+  color: #FFF;
+  transform: translateY(-1px);
+}
+
 /* ===== Dots & Badges ===== */
 .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
 .dot.success { background: var(--success); box-shadow: 0 0 10px var(--success); }

@@ -279,37 +279,40 @@
       </div>
       <!-- Landing Nav -->
       <div class="nav-links" id="landing-nav">
-        <a href="#features">Features</a>
-        <a href="#how-it-works">How It Works</a>
-        <a href="#heeadsss">HEEADSSS</a>
-        <a href="#chatbot">AI Chat</a>
+        <a href="#features" data-i18n="nav_features">Features</a>
+        <a href="#how-it-works" data-i18n="nav_how">How It Works</a>
+        <a href="#heeadsss" data-i18n="nav_heeadsss">HEEADSSS</a>
+        <a href="#chatbot" data-i18n="nav_chat">AI Chat</a>
       </div>
       <!-- Dashboard Nav -->
       <div class="nav-links hidden" id="dashboard-nav">
-        <a href="#" class="nav-tab active" data-view="dashboard">Dashboard</a>
-        <a href="#" class="nav-tab" data-view="chat">AI Chat</a>
-        <a href="#" class="nav-tab" data-view="assessment-history">My Progress</a>
+        <a href="#" class="nav-tab active" data-view="dashboard" data-i18n="nav_dashboard">Dashboard</a>
+        <a href="#" class="nav-tab" data-view="chat" data-i18n="nav_ai_chat">AI Chat</a>
+        <a href="#" class="nav-tab" data-view="assessment-history" data-i18n="nav_progress">My Progress</a>
       </div>
       <!-- Right side -->
       <div class="nav-right">
+        <button class="btn-lang-toggle" id="lang-toggle-btn" title="Switch Language / Magpalit ng Wika">
+          <span>🌐</span> <span id="lang-toggle-label">English</span>
+        </button>
         <button class="btn-zen-audio" id="zen-audio-btn" title="Toggle Zen Ambient Soundscape">
           <span id="zen-audio-icon">🧘</span> <span id="zen-audio-label">Zen Sound</span>
         </button>
         <div id="nav-guest">
-          <button class="btn btn-outline" id="signin-btn">Sign In</button>
-          <button class="btn btn-primary" id="get-started-nav">Get Started</button>
+          <button class="btn btn-outline" id="signin-btn" data-i18n="nav_signin">Sign In</button>
+          <button class="btn btn-primary" id="get-started-nav" data-i18n="nav_get_started">Get Started</button>
         </div>
         <div id="nav-user" class="hidden">
-          <button class="btn btn-glass" id="daily-checkin-btn">+ Check-in</button>
+          <button class="btn btn-glass" id="daily-checkin-btn" data-i18n="nav_checkin">+ Check-in</button>
           <div class="user-avatar-wrap" id="user-avatar-btn">
             <div class="user-avatar" id="nav-avatar">A</div>
             <div class="user-dropdown hidden" id="user-dropdown">
               <p id="dropdown-name">Student</p>
               <p id="dropdown-grade" style="font-size:0.8rem;color:var(--text-secondary);margin-top:2px;"></p>
               <hr style="border-color:rgba(255,255,255,0.1);margin:10px 0;">
-              <a href="#" id="retake-assessment">Retake Assessment</a>
+              <a href="#" id="retake-assessment" data-i18n="retake_assess">Retake Assessment</a>
 
-              <a href="#" id="signout-btn">Sign Out</a>
+              <a href="#" id="signout-btn" data-i18n="signout">Sign Out</a>
             </div>
           </div>
         </div>
@@ -322,17 +325,17 @@
         <!-- Hero -->
         <section class="hero" id="home">
           <div class="hero-content">
-            <div class="badge fade-in-up">🍃 Mindful AI Mental Wellness Sanctuary</div>
-            <h1 class="headline fade-in-up delay-1">
+            <div class="badge fade-in-up" data-i18n="hero_badge">🍃 Mindful AI Mental Wellness Sanctuary</div>
+            <h1 class="headline fade-in-up delay-1" data-i18n="hero_title">
               Understand Stress.<br>
               <span class="gradient-text">Restore Inner Peace.</span>
             </h1>
-            <p class="subheadline fade-in-up delay-2">
+            <p class="subheadline fade-in-up delay-2" data-i18n="hero_sub">
               Empathetic AI stress detection, personalized mental wellness guidance, and real-time serene support designed specifically for Senior High School students.
             </p>
             <div class="hero-buttons fade-in-up delay-3">
-              <button class="btn btn-primary glow-effect" id="hero-get-started">Get Started Free</button>
-              <button class="btn btn-glass" id="hero-assessment">Take Stress Assessment</button>
+              <button class="btn btn-primary glow-effect" id="hero-get-started" data-i18n="hero_btn_start">Get Started Free</button>
+              <button class="btn btn-glass" id="hero-assessment" data-i18n="hero_btn_assess">Take Stress Assessment</button>
             </div>
           </div>
           <div class="hero-visual fade-in delay-4">
@@ -341,9 +344,9 @@
               <div class="holo-ring ring-1"></div>
               <div class="holo-ring ring-2"></div>
               <div class="holo-ring ring-3"></div>
-              <div class="floating-badge badge-top-right pulse"><span class="dot success"></span> Serene Monitoring</div>
-              <div class="floating-badge badge-bottom-left pulse delay-1"><span class="dot accent"></span> Mindful AI Companion</div>
-              <div class="floating-badge badge-top-left pulse delay-2"><span class="dot violet"></span> Private & Peaceful</div>
+              <div class="floating-badge badge-top-right pulse"><span class="dot success"></span> <span data-i18n="badge_monitoring">Serene Monitoring</span></div>
+              <div class="floating-badge badge-bottom-left pulse delay-1"><span class="dot accent"></span> <span data-i18n="badge_ai_companion">Mindful AI Companion</span></div>
+              <div class="floating-badge badge-top-left pulse delay-2"><span class="dot violet"></span> <span data-i18n="badge_private">Private & Peaceful</span></div>
             </div>
           </div>
         </section>
@@ -351,34 +354,34 @@
         <!-- Features -->
         <section class="features" id="features">
           <div class="section-header reveal">
-            <h2 class="gradient-text">Intelligent Healthcare</h2>
-            <p>Cutting-edge features tailored for student wellness</p>
+            <h2 class="gradient-text" data-i18n="feat_title">Intelligent Healthcare</h2>
+            <p data-i18n="feat_sub">Cutting-edge features tailored for student wellness</p>
           </div>
           <div class="features-grid">
             <div class="feature-card glass-panel reveal">
               <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.14M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24A2.5 2.5 0 0 0 14.5 2z"/></svg></div>
-              <h3>AI Stress Detection</h3>
-              <p>Analyzes stress through self-reports, behavioral patterns, and emotional keywords using the Perceived Stress Scale.</p>
+              <h3 data-i18n="feat_1_title">AI Stress Detection</h3>
+              <p data-i18n="feat_1_desc">Analyzes stress through self-reports, behavioral patterns, and emotional keywords using the Perceived Stress Scale.</p>
             </div>
             <div class="feature-card glass-panel reveal delay-1">
               <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
-              <h3>Real-Time Monitoring</h3>
-              <p>Tracks emotional well-being through daily check-ins and provides instant stress-level assessment with trend analytics.</p>
+              <h3 data-i18n="feat_2_title">Real-Time Monitoring</h3>
+              <p data-i18n="feat_2_desc">Tracks emotional well-being through daily check-ins and provides instant stress-level assessment with trend analytics.</p>
             </div>
             <div class="feature-card glass-panel reveal delay-2">
               <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
-              <h3>Personalized Recommendations</h3>
-              <p>Generates customized coping strategies, breathing exercises, and relaxation activities based on your unique stress profile.</p>
+              <h3 data-i18n="feat_3_title">Personalized Recommendations</h3>
+              <p data-i18n="feat_3_desc">Generates customized coping strategies, breathing exercises, and relaxation activities based on your unique stress profile.</p>
             </div>
             <div class="feature-card glass-panel reveal delay-3">
               <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-              <h3>AI Chat Companion</h3>
-              <p>Powered by Google Gemini AI — provides supportive conversations and intelligent stress-management guidance 24/7.</p>
+              <h3 data-i18n="feat_4_title">AI Chat Companion</h3>
+              <p data-i18n="feat_4_desc">Powered by Google Gemini AI — provides supportive conversations and intelligent stress-management guidance 24/7.</p>
             </div>
             <div class="feature-card glass-panel reveal delay-4">
               <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
-              <h3>Student Wellness Dashboard</h3>
-              <p>Visualizes your stress trends, emotional health scores, and wellness progress over time with beautiful interactive charts.</p>
+              <h3 data-i18n="feat_5_title">Student Wellness Dashboard</h3>
+              <p data-i18n="feat_5_desc">Visualizes your stress trends, emotional health scores, and wellness progress over time with beautiful interactive charts.</p>
             </div>
           </div>
         </section>
@@ -386,42 +389,42 @@
         <!-- How It Works -->
         <section class="how-it-works" id="how-it-works">
           <div class="section-header reveal">
-            <h2 class="gradient-text">How PSYCHE Works</h2>
-            <p>Seamlessly integrated into your daily academic routine</p>
+            <h2 class="gradient-text" data-i18n="hiw_title">How PSYCHE Works</h2>
+            <p data-i18n="hiw_sub">Seamlessly integrated into your daily academic routine</p>
           </div>
           <div class="steps-container reveal">
             <div class="step">
               <div class="step-number">1</div>
-              <h3>Assessment</h3>
-              <p>Complete the 10-question Perceived Stress Scale to establish your baseline.</p>
+              <h3 data-i18n="hiw_step1_title">Assessment</h3>
+              <p data-i18n="hiw_step1_desc">Complete the 10-question Perceived Stress Scale to establish your baseline.</p>
             </div>
             <div class="step-line"></div>
             <div class="step">
               <div class="step-number">2</div>
-              <h3>AI Analysis</h3>
-              <p>PSYCHE AI processes your responses and classifies your stress level.</p>
+              <h3 data-i18n="hiw_step2_title">AI Analysis</h3>
+              <p data-i18n="hiw_step2_desc">PSYCHE AI processes your responses and classifies your stress level.</p>
             </div>
             <div class="step-line"></div>
             <div class="step">
               <div class="step-number">3</div>
-              <h3>Classification</h3>
-              <p>Get your score: Low, Moderate, High, or Severe stress level.</p>
+              <h3 data-i18n="hiw_step3_title">Classification</h3>
+              <p data-i18n="hiw_step3_desc">Get your score: Low, Moderate, High, or Severe stress level.</p>
             </div>
             <div class="step-line"></div>
             <div class="step">
               <div class="step-number">4</div>
-              <h3>Intervention</h3>
-              <p>Receive tailored exercises and coping strategies for your level.</p>
+              <h3 data-i18n="hiw_step4_title">Intervention</h3>
+              <p data-i18n="hiw_step4_desc">Receive tailored exercises and coping strategies for your level.</p>
             </div>
             <div class="step-line"></div>
             <div class="step">
               <div class="step-number">5</div>
-              <h3>Monitoring</h3>
-              <p>Daily check-ins track your progress and build long-term resilience.</p>
+              <h3 data-i18n="hiw_step5_title">Monitoring</h3>
+              <p data-i18n="hiw_step5_desc">Daily check-ins track your progress and build long-term resilience.</p>
             </div>
           </div>
           <div style="text-align:center;margin-top:60px;" class="reveal delay-2">
-            <button class="btn btn-primary glow-effect" id="hiw-start-btn" style="font-size:1.1rem;padding:16px 40px;">Start Your Wellness Journey</button>
+            <button class="btn btn-primary glow-effect" id="hiw-start-btn" style="font-size:1.1rem;padding:16px 40px;" data-i18n="hiw_btn">Start Your Wellness Journey</button>
           </div>
         </section>
 
@@ -554,19 +557,19 @@
             </div>
           </div>
           <div class="heeadsss-cta reveal delay-2">
-            <button class="btn btn-primary glow-effect" id="heeadsss-start-btn" style="font-size:1.05rem;padding:14px 32px;">Take HEEADSSS Screening Assessment</button>
+            <button class="btn btn-primary glow-effect" id="heeadsss-start-btn" style="font-size:1.05rem;padding:14px 32px;" data-i18n="heeadsss_btn">Take HEEADSSS Screening Assessment</button>
           </div>
         </section>
 
         <!-- Chatbot Preview -->
         <section class="chatbot-section" id="chatbot">
           <div class="chatbot-info-text reveal">
-            <h2 class="gradient-text">Empathetic AI Companion</h2>
-            <p>Always available to listen, guide, and support. PSYCHE uses advanced Google Gemini AI to understand not just what you say, but how you feel.</p>
+            <h2 class="gradient-text" data-i18n="chat_title">Empathetic AI Companion</h2>
+            <p data-i18n="chat_sub">Always available to listen, guide, and support. PSYCHE uses advanced Google Gemini AI to understand not just what you say, but how you feel.</p>
             <br>
-            <p style="color:var(--text-secondary);">Sign in to unlock the full AI chat experience with your personal wellness context.</p>
+            <p style="color:var(--text-secondary);" data-i18n="chat_signin_sub">Sign in to unlock the full AI chat experience with your personal wellness context.</p>
             <br>
-            <button class="btn btn-primary" id="chat-signin-btn" style="margin-top:8px;">Sign In to Chat</button>
+            <button class="btn btn-primary" id="chat-signin-btn" style="margin-top:8px;" data-i18n="chat_signin_btn">Sign In to Chat</button>
           </div>
           <div class="chatbot-container glass-panel reveal delay-1">
             <div class="chatbot-header">
@@ -615,9 +618,9 @@
         <div class="welcome-banner glass-panel reveal" id="welcome-banner">
           <div>
             <h2 id="welcome-greeting">Good morning!</h2>
-            <p id="welcome-sub" style="color:var(--text-secondary);margin-top:4px;">Here's your wellness overview for today.</p>
+            <p id="welcome-sub" style="color:var(--text-secondary);margin-top:4px;" data-i18n="dash_sub">Here's your wellness overview for today.</p>
           </div>
-          <button class="btn btn-primary" id="dashboard-checkin-btn">+ Daily Check-in</button>
+          <button class="btn btn-primary" id="dashboard-checkin-btn" data-i18n="nav_checkin">+ Daily Check-in</button>
         </div>
 
         <!-- DASHBOARD VIEW -->
@@ -626,7 +629,7 @@
 
             <!-- Stress Score Widget -->
             <div class="widget glass-panel reveal">
-              <h3>Stress Score</h3>
+              <h3 data-i18n="dash_stress_score">Stress Score</h3>
               <div class="score-circle">
                 <svg viewBox="0 0 100 100">
                   <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8"/>
@@ -641,40 +644,40 @@
 
             <!-- Today's Mood -->
             <div class="widget glass-panel reveal delay-1">
-              <h3>Today's Mood</h3>
+              <h3 data-i18n="dash_todays_mood">Today's Mood</h3>
               <div id="mood-display" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;">
                 <div style="font-size:4rem;" id="mood-emoji">–</div>
-                <div id="mood-label" style="font-size:1.2rem;font-weight:600;color:var(--accent-cyan);">No check-in yet</div>
-                <button class="btn btn-glass btn-small" id="widget-checkin-btn">Check In Now</button>
+                <div id="mood-label" style="font-size:1.2rem;font-weight:600;color:var(--accent-cyan);" data-i18n="dash_no_checkin">No check-in yet</div>
+                <button class="btn btn-glass btn-small" id="widget-checkin-btn" data-i18n="dash_checkin_now">Check In Now</button>
               </div>
             </div>
 
             <!-- Weekly Trend Chart -->
             <div class="widget glass-panel col-span-2 reveal delay-2">
               <div class="widget-header">
-                <h3>Weekly Stress Trend</h3>
+                <h3 data-i18n="dash_weekly_trend">Weekly Stress Trend</h3>
                 <span id="trend-badge" class="badge" style="margin-bottom:0;padding:4px 12px;font-size:0.8rem;"></span>
               </div>
               <div class="chart-container">
                 <canvas id="trend-chart" height="140"></canvas>
-                <p id="trend-placeholder" style="color:var(--text-secondary);text-align:center;width:100%;align-self:center;">Complete daily check-ins to see your trend</p>
+                <p id="trend-placeholder" style="color:var(--text-secondary);text-align:center;width:100%;align-self:center;" data-i18n="dash_trend_placeholder">Complete daily check-ins to see your trend</p>
               </div>
             </div>
 
             <!-- Stress Category -->
             <div class="widget glass-panel reveal delay-1">
-              <h3>Stress Classification</h3>
+              <h3 data-i18n="dash_classification">Stress Classification</h3>
               <div id="classification-display" style="display:flex;flex-direction:column;gap:16px;margin-top:8px;">
-                <div class="class-bar" data-level="Low"><span>Low</span><div class="bar-track"><div class="bar-fill" id="bar-low" style="background:var(--success)"></div></div></div>
-                <div class="class-bar" data-level="Moderate"><span>Moderate</span><div class="bar-track"><div class="bar-fill" id="bar-moderate" style="background:var(--warning)"></div></div></div>
-                <div class="class-bar" data-level="High"><span>High</span><div class="bar-track"><div class="bar-fill" id="bar-high" style="background:#F97316;"></div></div></div>
-                <div class="class-bar" data-level="Severe"><span>Severe</span><div class="bar-track"><div class="bar-fill" id="bar-severe" style="background:#EF4444;"></div></div></div>
+                <div class="class-bar" data-level="Low"><span data-i18n="level_low">Low</span><div class="bar-track"><div class="bar-fill" id="bar-low" style="background:var(--success)"></div></div></div>
+                <div class="class-bar" data-level="Moderate"><span data-i18n="level_moderate">Moderate</span><div class="bar-track"><div class="bar-fill" id="bar-moderate" style="background:var(--warning)"></div></div></div>
+                <div class="class-bar" data-level="High"><span data-i18n="level_high">High</span><div class="bar-track"><div class="bar-fill" id="bar-high" style="background:#F97316;"></div></div></div>
+                <div class="class-bar" data-level="Severe"><span data-i18n="level_severe">Severe</span><div class="bar-track"><div class="bar-fill" id="bar-severe" style="background:#EF4444;"></div></div></div>
               </div>
             </div>
 
             <!-- Academic Workload -->
             <div class="widget glass-panel reveal">
-              <h3>Academic Workload</h3>
+              <h3 data-i18n="dash_workload">Academic Workload</h3>
               <div id="workload-display" style="margin-top:16px;display:flex;flex-direction:column;gap:14px;">
                 <!-- filled by JS from assessment -->
               </div>
@@ -682,7 +685,7 @@
 
             <!-- AI Recommendations -->
             <div class="widget glass-panel col-span-2 reveal delay-1">
-              <h3>AI Recommendations</h3>
+              <h3 data-i18n="dash_recommendations">AI Recommendations</h3>
               <ul class="recommendation-list" id="recommendations-list">
                 <!-- filled by JS -->
               </ul>
@@ -690,7 +693,7 @@
 
             <!-- Stress History Timeline -->
             <div class="widget glass-panel col-span-3 reveal">
-              <h3>Assessment History</h3>
+              <h3 data-i18n="dash_history">Assessment History</h3>
               <div id="history-timeline" style="margin-top:16px;">
                 <p style="color:var(--text-secondary);">No assessment history yet.</p>
               </div>
@@ -700,10 +703,10 @@
             <div class="widget glass-panel col-span-3 reveal">
               <div class="widget-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
                 <div>
-                  <h3>HEEADSSS Psychosocial Profile</h3>
-                  <p style="color:var(--text-secondary);font-size:0.85rem;">8-Domain Adolescent Wellness & Safety Breakdown</p>
+                  <h3 data-i18n="dash_heeadsss_profile">HEEADSSS Psychosocial Profile</h3>
+                  <p style="color:var(--text-secondary);font-size:0.85rem;" data-i18n="dash_heeadsss_sub">8-Domain Adolescent Wellness & Safety Breakdown</p>
                 </div>
-                <button class="btn btn-glass btn-small" id="widget-heeadsss-btn">Screening Test</button>
+                <button class="btn btn-glass btn-small" id="widget-heeadsss-btn" data-i18n="dash_screening_btn">Screening Test</button>
               </div>
               <div class="heeadsss-domains-list" id="heeadsss-dashboard-grid">
                 <!-- Populated dynamically by JS -->
