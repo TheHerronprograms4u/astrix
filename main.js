@@ -1480,27 +1480,112 @@ function renderHeeadsssWidget(customResults = null) {
 
 function renderWorkload(workload) {
   const container = document.getElementById('workload-display');
+  if (!container) return;
+
+  const isFil = currentLang === 'fil';
+
   if (!workload || !Object.keys(workload).length) { 
-    container.innerHTML = `<p style="color:var(--text-secondary);">${currentLang === 'fil' ? 'Wala pang datos sa mga gawain.' : 'No workload data yet.'}</p>`; 
+    container.innerHTML = `<p style="color:var(--text-secondary);text-align:center;padding:24px;">${isFil ? 'Wala pang datos sa mga gawain.' : 'No workload data yet. Take an assessment to view graph.'}</p>`; 
     return; 
   }
-  const isFil = currentLang === 'fil';
-  const labelsList = isFil ? WORKLOAD_LABELS_FIL : WORKLOAD_LABELS;
 
-  container.innerHTML = WORKLOAD_QUESTIONS.map(wq => {
-    const val = workload[wq.key] ?? 0;
+  const labelsList = isFil ? WORKLOAD_LABELS_FIL : WORKLOAD_LABELS;
+  const levelColors = ['#10B981', '#74C69D', '#F59E0B', '#F97316', '#EF4444'];
+
+  const points = WORKLOAD_QUESTIONS.map((wq, idx) => {
+    const rawVal = workload[wq.key] ?? 0;
+    const val = wq.reversed ? 4 - rawVal : rawVal;
     const labelText = isFil && wq.label_fil ? wq.label_fil : wq.label;
-    const valText   = labelsList[val] || labelsList[0];
-    const pct       = (val / 4) * 100;
+    const ratingText = labelsList[val] || labelsList[0];
+    const color = levelColors[val] || levelColors[0];
+    
+    // SVG X: 75 to 475 across width 520
+    const x = 75 + idx * (400 / (WORKLOAD_QUESTIONS.length - 1));
+    // SVG Y: 30 (top - Very High) to 160 (bottom - Very Low)
+    const y = 160 - (val / 4) * 130;
+
+    return { idx, key: wq.key, labelText, ratingText, val, color, x, y };
+  });
+
+  // Build SVG path string with curved bezier segments
+  let pathD = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i];
+    const p1 = points[i + 1];
+    const mx = (p0.x + p1.x) / 2;
+    pathD += ` C ${mx} ${p0.y}, ${mx} ${p1.y}, ${p1.x} ${p1.y}`;
+  }
+
+  // Area path for gradient background
+  const areaD = `${pathD} L ${points[points.length - 1].x} 160 L ${points[0].x} 160 Z`;
+
+  // Y-Axis Horizontal Grid Lines (Level 4 down to Level 0)
+  const gridLines = [4, 3, 2, 1, 0].map(lvl => {
+    const y = 160 - (lvl / 4) * 130;
+    const lvlText = labelsList[lvl];
     return `
-      <div class="workload-item">
-        <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:4px;">
-          <span>${labelText}</span>
-          <span style="color:var(--accent-cyan);font-weight:600;">${valText}</span>
-        </div>
-        <div class="workload-bar-track"><div class="workload-bar-fill" style="width:${pct}%;"></div></div>
-      </div>`;
+      <line x1="75" y1="${y}" x2="475" y2="${y}" stroke="rgba(255,255,255,0.07)" stroke-dasharray="4,4" stroke-width="1"/>
+      <text x="65" y="${y + 4}" fill="var(--text-secondary)" font-size="10" text-anchor="end" font-weight="600">${lvlText}</text>
+    `;
   }).join('');
+
+  // SVG Data Nodes with glowing outer ring and label
+  const svgNodes = points.map(p => `
+    <g class="workload-node" transform="translate(${p.x}, ${p.y})">
+      <circle r="10" fill="${p.color}" opacity="0.25" />
+      <circle r="5" fill="${p.color}" stroke="#0E1614" stroke-width="2" />
+      <text y="-14" fill="${p.color}" font-size="11" font-weight="700" text-anchor="middle">${p.ratingText}</text>
+    </g>
+  `).join('');
+
+  // X-Axis Labels
+  const svgXLabels = points.map(p => `
+    <text x="${p.x}" y="186" fill="var(--text-primary)" font-size="11" font-weight="600" text-anchor="middle">${p.labelText}</text>
+  `).join('');
+
+  container.innerHTML = `
+    <div class="workload-chart-wrapper" style="width:100%;overflow-x:auto;">
+      <svg viewBox="0 0 520 205" style="width:100%;height:auto;min-width:440px;display:block;">
+        <defs>
+          <linearGradient id="workloadLineGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#64FFDA" />
+            <stop offset="50%" stop-color="#84A98C" />
+            <stop offset="100%" stop-color="#B5A8D5" />
+          </linearGradient>
+          <linearGradient id="workloadAreaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#64FFDA" stop-opacity="0.25" />
+            <stop offset="100%" stop-color="#64FFDA" stop-opacity="0.0" />
+          </linearGradient>
+        </defs>
+
+        <!-- Y-Axis Grid Lines -->
+        ${gridLines}
+
+        <!-- Gradient Area Fill -->
+        <path d="${areaD}" fill="url(#workloadAreaGrad)" />
+
+        <!-- Line Graph Path -->
+        <path d="${pathD}" fill="none" stroke="url(#workloadLineGrad)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px rgba(100,255,218,0.4));" />
+
+        <!-- Data Nodes & Labels -->
+        ${svgNodes}
+        ${svgXLabels}
+      </svg>
+    </div>
+    
+    <!-- Summary Chips Grid -->
+    <div class="workload-summary-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(120px, 1fr));gap:10px;margin-top:14px;">
+      ${points.map(p => `
+        <div class="workload-chip" style="padding:10px 14px;border-radius:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;gap:3px;">
+          <span style="font-size:0.75rem;color:var(--text-secondary);">${p.labelText}</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px;">
+            <span style="font-size:0.88rem;font-weight:700;color:${p.color};">${p.ratingText}</span>
+            <span class="dot" style="background:${p.color};box-shadow:0 0 8px ${p.color};"></span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
 }
 
 function renderRecommendations(recs) {
