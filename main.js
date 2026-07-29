@@ -210,6 +210,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initAssessmentModal();
   initBreathingModal();
   initCheckinModal();
+  initZenAudio();
 
 
   // Show a loading state
@@ -1833,29 +1834,243 @@ async function getAIRecommendations(score, level) {
   }
 }
 
-// ── NEURAL CANVAS ────────────────────────────────────────────
+// ── ZEN SERENE CANVAS ──────────────────────────────────────────
 function initNeuralCanvas() {
   const canvas = document.getElementById('neural-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   let particles = [], W, H;
+  
   const resize = () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; };
-  window.addEventListener('resize', resize); resize();
-  for (let i = 0; i < 75; i++) particles.push({ x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-0.5)*0.25, vy:(Math.random()-0.5)*0.25, r:Math.random()*1.5+0.5 });
+  window.addEventListener('resize', resize); 
+  resize();
+
+  // Create serene floating leaves/petals and ambient light orbs
+  const colors = [
+    { r: 132, g: 169, b: 140 }, // Sage leaf
+    { r: 118, g: 199, b: 183 }, // Soft cyan mist
+    { r: 181, g: 168, b: 213 }, // Soft iris
+    { r: 226, g: 180, b: 154 }  // Warm sand
+  ];
+
+  for (let i = 0; i < 55; i++) {
+    const col = colors[Math.floor(Math.random() * colors.length)];
+    particles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: -0.15 - Math.random() * 0.25, // Gentle upward drift
+      size: Math.random() * 4 + 2,
+      angle: Math.random() * Math.PI * 2,
+      vAngle: (Math.random() - 0.5) * 0.015,
+      sineOffset: Math.random() * Math.PI * 2,
+      sineSpeed: 0.005 + Math.random() * 0.008,
+      color: col,
+      alpha: Math.random() * 0.35 + 0.15,
+      isLeaf: Math.random() > 0.4
+    });
+  }
+
   (function animate() {
     ctx.clearRect(0, 0, W, H);
+
+    // Soft background radial aura
+    const bgGlow = ctx.createRadialGradient(W / 2, H / 3, 0, W / 2, H / 3, W * 0.7);
+    bgGlow.addColorStop(0, 'rgba(132, 169, 140, 0.04)');
+    bgGlow.addColorStop(0.5, 'rgba(82, 121, 111, 0.02)');
+    bgGlow.addColorStop(1, 'rgba(10, 17, 15, 0)');
+    ctx.fillStyle = bgGlow;
+    ctx.fillRect(0, 0, W, H);
+
     particles.forEach((p, i) => {
-      p.x += p.vx; p.y += p.vy;
-      if (p.x < 0 || p.x > W) p.vx *= -1;
-      if (p.y < 0 || p.y > H) p.vy *= -1;
-      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fillStyle='rgba(100,255,218,0.35)'; ctx.fill();
-      for (let j = i+1; j < particles.length; j++) {
-        const dx=p.x-particles[j].x, dy=p.y-particles[j].y, dist=Math.sqrt(dx*dx+dy*dy);
-        if (dist < 140) { ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(particles[j].x,particles[j].y); ctx.strokeStyle=`rgba(100,255,218,${0.08-(dist/140)*0.08})`; ctx.lineWidth=0.5; ctx.stroke(); }
+      p.sineOffset += p.sineSpeed;
+      p.x += p.vx + Math.sin(p.sineOffset) * 0.35;
+      p.y += p.vy;
+      p.angle += p.vAngle;
+
+      // Wrap around bounds softly
+      if (p.y < -20) { p.y = H + 20; p.x = Math.random() * W; }
+      if (p.x < -20) p.x = W + 20;
+      if (p.x > W + 20) p.x = -20;
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle);
+
+      if (p.isLeaf) {
+        // Draw organic serene leaf/petal
+        ctx.beginPath();
+        ctx.moveTo(0, -p.size * 1.8);
+        ctx.bezierCurveTo(p.size * 1.5, -p.size * 0.5, p.size * 1.2, p.size * 1.2, 0, p.size * 1.8);
+        ctx.bezierCurveTo(-p.size * 1.2, p.size * 1.2, -p.size * 1.5, -p.size * 0.5, 0, -p.size * 1.8);
+        ctx.fillStyle = `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, ${p.alpha})`;
+        ctx.fill();
+      } else {
+        // Draw soft ambient glowing orb
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size * 1.4, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, ${p.alpha * 0.8})`;
+        ctx.shadowColor = `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, 0.5)`;
+        ctx.shadowBlur = 12;
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // Soft connections between close floating particles
+      for (let j = i + 1; j < particles.length; j++) {
+        const p2 = particles[j];
+        const dx = p.x - p2.x, dy = p.y - p2.y, dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 130) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p2.x, p2.y);
+          const lineAlpha = (1 - dist / 130) * 0.08;
+          ctx.strokeStyle = `rgba(132, 169, 140, ${lineAlpha})`;
+          ctx.lineWidth = 0.6;
+          ctx.stroke();
+        }
       }
     });
+
     requestAnimationFrame(animate);
   })();
+}
+
+// ── ZEN AMBIENT SOUNDSCAPE SYNTHESIZER ────────────────────────
+let _zenAudioCtx = null;
+let _zenSoundMode = 0; // 0: Off, 1: Rain, 2: Stream, 3: Singing Bowl
+let _zenNodes = [];
+let _bowlTimer = null;
+
+function initZenAudio() {
+  const btn = document.getElementById('zen-audio-btn');
+  if (!btn) return;
+
+  const modes = [
+    { label: "Zen Sound: Off", icon: "🧘" },
+    { label: "Rain Sanctuary", icon: "🌧️" },
+    { label: "Forest Stream", icon: "🍃" },
+    { label: "Singing Bowl", icon: "🔔" }
+  ];
+
+  btn.addEventListener('click', () => {
+    _zenSoundMode = (_zenSoundMode + 1) % modes.length;
+    const mode = modes[_zenSoundMode];
+
+    document.getElementById('zen-audio-icon').textContent = mode.icon;
+    document.getElementById('zen-audio-label').textContent = mode.label;
+
+    if (_zenSoundMode === 0) {
+      btn.classList.remove('playing');
+      stopZenAudio();
+    } else {
+      btn.classList.add('playing');
+      startZenAudio(_zenSoundMode);
+    }
+  });
+}
+
+function stopZenAudio() {
+  if (_bowlTimer) { clearInterval(_bowlTimer); _bowlTimer = null; }
+  _zenNodes.forEach(n => {
+    try {
+      if (n.stop) n.stop();
+      if (n.disconnect) n.disconnect();
+    } catch (e) {}
+  });
+  _zenNodes = [];
+}
+
+function startZenAudio(mode) {
+  stopZenAudio();
+  if (!_zenAudioCtx) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    _zenAudioCtx = new AudioCtx();
+  }
+  if (_zenAudioCtx.state === 'suspended') {
+    _zenAudioCtx.resume();
+  }
+
+  const ctx = _zenAudioCtx;
+  const masterGain = ctx.createGain();
+  masterGain.gain.setValueAtTime(0.18, ctx.currentTime);
+  masterGain.connect(ctx.destination);
+  _zenNodes.push(masterGain);
+
+  if (mode === 1) {
+    // 🌧️ Gentle Rain (Pink noise + lowpass filter)
+    const bufferSize = ctx.sampleRate * 2;
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99886 * b0 + white * 0.0555179;
+      b1 = 0.99332 * b1 + white * 0.0750759;
+      b2 = 0.96900 * b2 + white * 0.1538520;
+      b3 = 0.86650 * b3 + white * 0.3104856;
+      b4 = 0.55000 * b4 + white * 0.5329522;
+      b5 = -0.7616 * b5 - white * 0.0168980;
+      output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+      output[i] *= 0.11;
+      b6 = white * 0.115926;
+    }
+
+    const whiteNoise = ctx.createBufferSource();
+    whiteNoise.buffer = noiseBuffer;
+    whiteNoise.loop = true;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(750, ctx.currentTime);
+
+    whiteNoise.connect(filter);
+    filter.connect(masterGain);
+    whiteNoise.start();
+    _zenNodes.push(whiteNoise, filter);
+
+  } else if (mode === 2) {
+    // 🍃 Forest Stream (Low binaural ambient hum + serene water frequency)
+    [216, 218].forEach(freq => {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start();
+      _zenNodes.push(osc, gain);
+    });
+
+  } else if (mode === 3) {
+    // 🔔 Zen Singing Bowl (Resonant 432 Hz warm chime)
+    const playBowlStrike = () => {
+      if (!ctx || _zenSoundMode !== 3) return;
+      const freqs = [432, 864, 1296];
+      freqs.forEach((f, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, ctx.currentTime);
+
+        const vol = 0.25 / (idx + 1);
+        gain.gain.setValueAtTime(vol, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 6.0);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start();
+        osc.stop(ctx.currentTime + 6.0);
+      });
+    };
+
+    playBowlStrike();
+    _bowlTimer = setInterval(playBowlStrike, 7000);
+  }
 }
 
 // ── SCROLL REVEAL ────────────────────────────────────────────
