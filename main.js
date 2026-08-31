@@ -6,6 +6,8 @@
 import { supabase } from './supabase.js';
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_MODEL = import.meta.env.VITE_GROQ_MODEL || 'openai/gpt-oss-120b';
+const GROQ_FALLBACK_MODELS = ['openai/gpt-oss-20b', 'qwen/qwen3.8-27b'];
 
 // ── PSS-10 Questions (Bilingual: EN & FIL) ─────────────────────
 const ASSESSMENT_QUESTIONS = [
@@ -2222,22 +2224,36 @@ function updateEmotionBadge(text) {
 }
 
 // ── Groq API fetch ──
-async function groqRequest(messages) {
-  const res = await fetch(GROQ_URL, {
-    method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages: messages,
-      temperature: 0.6
-    }),
-  });
-  if (res.status === 429) return { _rateLimited: true };
-  if (!res.ok) return null;
-  return await res.json();
+async function groqRequest(messages, model = GROQ_MODEL) {
+  try {
+    const res = await fetch(GROQ_URL, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: messages,
+        temperature: 0.6
+      }),
+    });
+    if (res.status === 429) return { _rateLimited: true };
+    if (!res.ok) {
+      if (model === GROQ_MODEL) {
+        for (const fallback of GROQ_FALLBACK_MODELS) {
+          console.warn(`Groq request with ${model} failed (${res.status}), trying fallback: ${fallback}`);
+          const fallbackRes = await groqRequest(messages, fallback);
+          if (fallbackRes) return fallbackRes;
+        }
+      }
+      return null;
+    }
+    return await res.json();
+  } catch (err) {
+    console.error('Groq request error:', err);
+    return null;
+  }
 }
 
 async function getAIResponse() {

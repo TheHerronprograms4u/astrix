@@ -407,7 +407,7 @@
 
     subgraph RECS_GEN ["💡 AI Recommendations"]
         E --> K["Format System Prompt (Score + Workload)"]
-        K --> L["Groq API Request (Llama 3.3 70B)"]
+        K --> L["Groq API Request (GPT-OSS 120B)"]
         L --> M["Parse JSON Recommendations"]
         M --> N["Display 3 Wellness Cards"]
     end
